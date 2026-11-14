@@ -1,0 +1,337 @@
+{
+ "real_strings": 2383,
+ "coverage_booking": {
+  "bed type found": {
+   "strings": 0.6412085606378515,
+   "bookings": 0.8893533292482034
+  },
+  "class found": {
+   "strings": 0.6521191775073437,
+   "bookings": 0.6978529194088764
+  },
+  "non-default room type (suite, apartment, ...)": {
+   "strings": 0.28031892572387745,
+   "bookings": 0.050257044859500714
+  },
+  "view found": {
+   "strings": 0.16701636592530425,
+   "bookings": 0.03593455303639214
+  },
+  "any feature (balcony, terrace, accessible, ...)": {
+   "strings": 0.16365925304238355,
+   "bookings": 0.03529194088764036
+  },
+  "rate or package term split off": {
+   "strings": 0.09483843894250944,
+   "bookings": 0.014421967387930829
+  },
+  "fully understood (no leftover tokens)": {
+   "strings": 0.5753252203105329,
+   "bookings": 0.9173974804828942
+  },
+  "confident (score >= 0.8)": {
+   "strings": 0.6903063365505665,
+   "bookings": 0.9406309934027806
+  },
+  "needs the model stage (score < 0.5)": {
+   "strings": 0.05791019723038187,
+   "bookings": 0.007060775591083806
+  }
+ },
+ "coverage_india": {
+  "strings": 6003,
+  "class or bed or type found": 0.899383641512577,
+  "AC / non-AC found": 0.36231884057971014,
+  "confident (score >= 0.8)": 0.5363984674329502,
+  "needs the model stage (score < 0.5)": 0.13359986673330002
+ },
+ "leftover_tokens_top": [
+  [
+   "two",
+   43
+  ],
+  [
+   "eiffel",
+   40
+  ],
+  [
+   "free",
+   39
+  ],
+  [
+   "hilton",
+   33
+  ],
+  [
+   "tower",
+   33
+  ],
+  [
+   "park",
+   31
+  ],
+  [
+   "sofa",
+   25
+  ],
+  [
+   "pool",
+   25
+  ],
+  [
+   "plus",
+   22
+  ],
+  [
+   "lounge",
+   21
+  ],
+  [
+   "disability",
+   20
+  ],
+  [
+   "size",
+   18
+  ],
+  [
+   "studio",
+   16
+  ],
+  [
+   "duplex",
+   16
+  ],
+  [
+   "city",
+   14
+  ],
+  [
+   "art",
+   13
+  ],
+  [
+   "shower",
+   13
+  ],
+  [
+   "s",
+   13
+  ],
+  [
+   "bath",
+   13
+  ],
+  [
+   "hammam",
+   13
+  ],
+  [
+   "corner",
+   12
+  ],
+  [
+   "penthouse",
+   12
+  ],
+  [
+   "xl",
+   12
+  ],
+  [
+   "four",
+   12
+  ],
+  [
+   "paris",
+   12
+  ]
+ ],
+ "same_signature_pairs": 207,
+ "same_signature_kinds": {
+  "formatting only": 12,
+  "rate / package / promotion differs": 43,
+  "occupancy wording differs": 152
+ },
+ "benchmark": {
+  "hotels": 1484,
+  "rooms": 8385,
+  "styles": [
+   "bedbank abbreviations",
+   "rate terms appended",
+   "comma style",
+   "case and punctuation noise",
+   "synonyms and bed phrasing",
+   "abbreviations + rate codes"
+  ],
+  "methods": {
+   "exact string (normalised)": {
+    "coverage": 0.1544822102961638,
+    "precision": 1.0,
+    "correct_of_all": 0.1544822102961638,
+    "by_style": {
+     "bedbank abbreviations": {
+      "coverage": 0.01144901610017889,
+      "precision": 1.0
+     },
+     "rate terms appended": {
+      "coverage": 0.0,
+      "precision": 0.0
+     },
+     "comma style": {
+      "coverage": 0.2505664877757901,
+      "precision": 1.0
+     },
+     "case and punctuation noise": {
+      "coverage": 0.18556946929039952,
+      "precision": 1.0
+     },
+     "synonyms and bed phrasing": {
+      "coverage": 0.4793082886106142,
+      "precision": 1.0
+     },
+     "abbreviations + rate codes": {
+      "coverage": 0.0,
+      "precision": 0.0
+     }
+    }
+   },
+   "fuzzy token-set >= 90": {
+    "coverage": 0.5671238322401113,
+    "precision": 0.9859105565680639,
+    "correct_of_all": 0.5591333730868615,
+    "by_style": {
+     "bedbank abbreviations": {
+      "coverage": 0.1392963625521765,
+      "precision": 0.985445205479452
+     },
+     "rate terms appended": {
+      "coverage": 0.8375670840787119,
+      "precision": 1.0
+     },
+     "comma style": {
+      "coverage": 0.7276088252832439,
+      "precision": 1.0
+     },
+     "case and punctuation noise": {
+      "coverage": 0.882051282051282,
+      "precision": 0.9987831260140616
+     },
+     "synonyms and bed phrasing": {
+      "coverage": 0.7675611210494931,
+      "precision": 0.944841516469857
+     },
+     "abbreviations + rate codes": {
+      "coverage": 0.04865831842576029,
+      "precision": 0.9485294117647058
+     }
+    }
+   },
+   "fuzzy weighted ratio >= 90": {
+    "coverage": 0.5991850526734248,
+    "precision": 0.994725493448333,
+    "correct_of_all": 0.5960246471874379,
+    "by_style": {
+     "bedbank abbreviations": {
+      "coverage": 0.14072748956469885,
+      "precision": 0.9889830508474576
+     },
+     "rate terms appended": {
+      "coverage": 0.886463923673226,
+      "precision": 0.9997309296381004
+     },
+     "comma style": {
+      "coverage": 0.9447823494335122,
+      "precision": 1.0
+     },
+     "case and punctuation noise": {
+      "coverage": 0.8478234943351223,
+      "precision": 0.999437332958222
+     },
+     "synonyms and bed phrasing": {
+      "coverage": 0.7482409063804413,
+      "precision": 0.9791201785145043
+     },
+     "abbreviations + rate codes": {
+      "coverage": 0.027072152653548003,
+      "precision": 0.960352422907489
+     }
+    }
+   },
+   "fuzzy token-sort >= 80": {
+    "coverage": 0.5409063804412642,
+    "precision": 0.992466835703524,
+    "correct_of_all": 0.536831643808388,
+    "by_style": {
+     "bedbank abbreviations": {
+      "coverage": 0.17865235539654145,
+      "precision": 0.9879839786381842
+     },
+     "rate terms appended": {
+      "coverage": 0.08753726893261778,
+      "precision": 0.9863760217983651
+     },
+     "comma style": {
+      "coverage": 0.9991651759093619,
+      "precision": 0.9998806397708283
+     },
+     "case and punctuation noise": {
+      "coverage": 0.997376267143709,
+      "precision": 0.9994021284228147
+     },
+     "synonyms and bed phrasing": {
+      "coverage": 0.8460345855694693,
+      "precision": 0.9773047645897942
+     },
+     "abbreviations + rate codes": {
+      "coverage": 0.1366726296958855,
+      "precision": 0.9912739965095986
+     }
+    }
+   },
+   "attribute parser (canon.rooms)": {
+    "coverage": 0.9569270522758895,
+    "precision": 0.9998753712896994,
+    "correct_of_all": 0.9568077916915126,
+    "by_style": {
+     "bedbank abbreviations": {
+      "coverage": 0.9569469290399523,
+      "precision": 0.9996261216350947
+     },
+     "rate terms appended": {
+      "coverage": 0.9570661896243292,
+      "precision": 1.0
+     },
+     "comma style": {
+      "coverage": 0.9564698867024448,
+      "precision": 1.0
+     },
+     "case and punctuation noise": {
+      "coverage": 0.9575432319618367,
+      "precision": 1.0
+     },
+     "synonyms and bed phrasing": {
+      "coverage": 0.957185450208706,
+      "precision": 1.0
+     },
+     "abbreviations + rate codes": {
+      "coverage": 0.956350626118068,
+      "precision": 0.9996258885147774
+     }
+    }
+   }
+  },
+  "rate_extraction": {
+   "n": 16746,
+   "accuracy": 1.0
+  },
+  "share_of_rewrites_that_changed_the_string": {
+   "bedbank abbreviations": 0.9885509838998211,
+   "rate terms appended": 1.0,
+   "comma style": 0.74943351222421,
+   "case and punctuation noise": 0.8144305307096005,
+   "synonyms and bed phrasing": 0.5204531902206321,
+   "abbreviations + rate codes": 1.0
+  }
+ }
+}
