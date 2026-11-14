@@ -1,0 +1,63 @@
+{
+ "rows": {
+  "klook_products": 192,
+  "klook_options": 467,
+  "viator_products": 192,
+  "attraction_pois": {
+   "osm": 42234,
+   "wikivoyage": 2508,
+   "wikidata": 29192,
+   "overture": 154231
+  }
+ },
+ "klook": {
+  "products": 192,
+  "with_coords": 186,
+  "with_place_id": 49,
+  "with_policy": 186
+ },
+ "klook_types": {
+  "admission / ticket": 101,
+  "pass / multi-attraction": 37,
+  "tour / day trip": 11,
+  "transfer / transport": 23,
+  "cruise / boat": 1,
+  "food / dining": 4,
+  "show / event": 6,
+  "skip-the-line / express": 13
+ },
+ "klook_combo_like_share": 0.328125,
+ "option_attribute_share": {
+  "age band (adult / child / senior)": 0.11563169164882227,
+  "combo wording (+ / and / with / combo)": 0.4261241970021413,
+  "meal included": 0.059957173447537475,
+  "transfer / pickup": 0.1006423982869379,
+  "access type (express / skip / priority)": 0.06852248394004283,
+  "time / date window": 0.15203426124197003,
+  "duration": 0.1777301927194861,
+  "group type (private / shared)": 0.04925053533190578,
+  "resident / nationality pricing": 0.11134903640256959,
+  "promotion wording": 0.07066381156316917
+ },
+ "policy_classes": {
+  "non-refundable": 151,
+  "refundable until used": 17,
+  "free cancellation, cutoff <= 24 h": 5,
+  "free cancellation, cutoff 25-72 h": 12,
+  "other / unparsed": 1
+ },
+ "policy_distinct_first_lines": 24,
+ "klook_families": {
+  "locations": 142,
+  "multi_product_locations": 34
+ },
+ "klook_sg_anchored": {
+  "anchored": 83,
+  "geocoded": 87
+ },
+ "viator": {
+  "products": 192,
+  "cities": 19,
+  "free_cancellation_share": 0.953125
+ }
+}

@@ -1,0 +1,114 @@
+{
+ "booking": {
+  "reviews": 515738,
+  "hotels": 1492,
+  "tagged": 502636,
+  "hotel_room_pairs": 8393,
+  "distinct_strings": 2383
+ },
+ "coverage": {
+  "10": 0.424802441528263,
+  "50": 0.7168288781543701,
+  "100": 0.809621674531868,
+  "250": 0.8900357316228842,
+  "500": 0.9405076437024009,
+  "1000": 0.9797706491377458
+ },
+ "strings_for_90pct": 285,
+ "single_hotel_strings": 1884,
+ "rooms_per_hotel": {
+  "median": 5,
+  "p90": 9,
+  "max": 20
+ },
+ "lexicon_booking": {
+  "room class": {
+   "strings": 0.7784305497272346,
+   "bookings": 0.7184960886207912
+  },
+  "bed type": {
+   "strings": 0.6668065463701217,
+   "bookings": 0.8938953835379877
+  },
+  "view / location": {
+   "strings": 0.21779269827947964,
+   "bookings": 0.04711361701111739
+  },
+  "occupancy": {
+   "strings": 0.1141418380193034,
+   "bookings": 0.026605734567360873
+  },
+  "rate / package leaked into the name": {
+   "strings": 0.09190096516995384,
+   "bookings": 0.013976316857527118
+  },
+  "accessibility / smoking": {
+   "strings": 0.025597985732270248,
+   "bookings": 0.011214875178061261
+  },
+  "climate (India)": {
+   "strings": 0.001678556441460344,
+   "bookings": 0.00034418545428500946
+  },
+  "neither class nor bed found": {
+   "strings": 0.03776751993285774,
+   "bookings": 0.005570631630046396
+  }
+ },
+ "one_token_apart_pairs": 910,
+ "same_tokens_pairs": 8,
+ "lexicon_makemytrip": {
+  "room class": 0.8715540126608128,
+  "bed type": 0.28609352664896875,
+  "view / location": 0.07841535634061671,
+  "occupancy": 0.0034715131713293854,
+  "rate / package leaked into the name": 0.015111292628139678,
+  "accessibility / smoking": 0.007759852971206862,
+  "climate (India)": 0.36287522973248926,
+  "neither class nor bed found": 0.07596487645497244
+ },
+ "unparsed_examples_makemytrip": [
+  "non ac room",
+  "ac room",
+  "guest room",
+  "non ac room|ac room",
+  "master room 1",
+  "tent",
+  "camp",
+  "2 bed non ac room",
+  "regular non ac room",
+  "ac rooms",
+  "houseboat",
+  "1 bhk",
+  "2 bhk",
+  "room 1",
+  "regular non ac"
+ ],
+ "lexicon_goibibo": {
+  "room class": 0.6168831168831169,
+  "bed type": 0.22541743970315398,
+  "view / location": 0.07142857142857142,
+  "occupancy": 0.0055658627087198514,
+  "rate / package leaked into the name": 0.025974025974025976,
+  "accessibility / smoking": 0.0009276437847866419,
+  "climate (India)": 0.3200371057513915,
+  "neither class nor bed found": 0.2717996289424861
+ },
+ "unparsed_examples_goibibo": [
+  "ac room",
+  "non ac room",
+  "non a/c room",
+  "a/c room",
+  "delux room",
+  "ac rooms",
+  "cottages",
+  "swiss tent",
+  "2 bhk",
+  "ac-room",
+  "tented accommodation",
+  "1 bhk",
+  "non a/c",
+  "suit room",
+  "3bhk"
+ ]
+}

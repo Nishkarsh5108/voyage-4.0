@@ -1,0 +1,94 @@
+{
+ "size": {
+  "makemytrip": {
+   "rows": 20046,
+   "properties": 15168,
+   "cities": 733
+  },
+  "goibibo": {
+   "rows": 4000,
+   "properties": 4000,
+   "cities": 555
+  }
+ },
+ "completeness": {
+  "makemytrip": {
+   "name": 1.0,
+   "address": 0.999670358649789,
+   "coordinates in India": 0.7615374472573839,
+   "star rating (1-5)": 0.9974286279422431,
+   "property type": 0.9935390295358649,
+   "description": 0.7474287974683544,
+   "images": 0.4397415611814346,
+   "review rating": 0.02709651898734177,
+   "room type": 1.0,
+   "state": 0.27406381856540085
+  },
+  "goibibo": {
+   "name": 1.0,
+   "address": 0.99975,
+   "coordinates in India": 0.99925,
+   "star rating (1-5)": 0.516,
+   "property type": 1.0,
+   "description": 0.99575,
+   "images": 0.98925,
+   "review rating": 0.60375,
+   "room type": 1.0,
+   "state": 1.0
+  }
+ },
+ "coord_quality": {
+  "makemytrip": {
+   "outside": 0.23775900752276627,
+   "low_precision": 0.018007098952471646,
+   "shared_point": 0.27019305687819234,
+   "max_on_point": 14
+  },
+  "goibibo": {
+   "outside": 0.00075,
+   "low_precision": 0.0040030022516887665,
+   "shared_point": 0.2094070552914686,
+   "max_on_point": 42
+  }
+ },
+ "overlap": {
+  "candidates_1km": 48018,
+  "name_identical": 469,
+  "jw_ge_092_not_identical": 290,
+  "jw_085_092": 2796,
+  "goibibo_with_likely_twin": 584,
+  "goibibo_total": 4000,
+  "mmt_total": 15168
+ },
+ "likely_pairs": {
+  "median_dist_m": 74.15847377273452,
+  "p90_dist_m": 662.4528266245043,
+  "gt_300m": 0.30171277997364954,
+  "stars_differ": 0.5375494071146245
+ },
+ "same_name_city_gt_2km": 73,
+ "internal_duplicates": {
+  "makemytrip": {
+   "groups": 1694,
+   "ids": 3388
+  },
+  "goibibo": {
+   "groups": 2,
+   "ids": 4
+  }
+ },
+ "room_strings": {
+  "makemytrip": {
+   "n": 12125,
+   "distinct_raw": 4917,
+   "distinct_lower": 4897,
+   "distinct_alnum": 4516
+  },
+  "goibibo": {
+   "n": 4000,
+   "distinct_raw": 1297,
+   "distinct_lower": 1078,
+   "distinct_alnum": 949
+  }
+ }
+}

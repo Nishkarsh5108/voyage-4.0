@@ -1,0 +1,69 @@
+{
+ "records": 1138812,
+ "places": 739972,
+ "true_pairs": 950503,
+ "multi_record_places": 314948,
+ "largest_cluster": 332,
+ "completeness": {
+  "latitude": 1.0,
+  "longitude": 1.0,
+  "name": 0.9999991218919365,
+  "country": 0.9999903408113016,
+  "categories": 0.9136758306024173,
+  "city": 0.7372797265922734,
+  "address": 0.651723901750245,
+  "state": 0.6306800420086898,
+  "zip": 0.4771516281879713,
+  "phone": 0.30106374010811265,
+  "url": 0.23509060318999098
+ },
+ "non_ascii_name_share": 0.28330161896925826,
+ "travel_slice": {
+  "attraction": {
+   "records": 50725,
+   "places": 35352
+  },
+  "lodging": {
+   "records": 31285,
+   "places": 20532
+  }
+ },
+ "jitter_m": {
+  "p50": 48.023405606696,
+  "p90": 1379.6005052852468,
+  "p95": 4126.528118336177,
+  "p99": 42026.291290684196,
+  "gt_1km": 0.11973302997528679,
+  "gt_5km": 0.04370765549434846
+ },
+ "pairs": {
+  "match": {
+   "n": 398786,
+   "median_dist_m": 107.52437679931512,
+   "median_jw": 0.8934065934065935,
+   "names_equal": 0.2875552301234246,
+   "both_phone": 0.15373157533112997,
+   "phones_equal_when_both": 0.43917397970834826,
+   "both_url": 0.09520645158054696,
+   "domains_equal_when_both": 0.7999315194774409
+  },
+  "non_match": {
+   "n": 180121,
+   "median_dist_m": 143.5738816399403,
+   "median_jw": 0.7491596638655463,
+   "names_equal": 0.09478628255450502,
+   "both_phone": 0.15107066916128603,
+   "phones_equal_when_both": 0.13233618757120283,
+   "both_url": 0.12798618706314088,
+   "domains_equal_when_both": 0.5405804016830781
+  }
+ },
+ "rule_precision": {
+  "same_phone": 0.882031122031122,
+  "same_domain": 0.7090561016039035,
+  "same_phone_lt200m": 0.9022003745318352,
+  "same_phone_lt200m_jw085": 0.9294223826714801
+ },
+ "hard_positive_share_jw_lt_0.8": 0.3241788829096307,
+ "hard_negative_share_jw_gt_0.95_within_200m": 0.07763114795054436
+}

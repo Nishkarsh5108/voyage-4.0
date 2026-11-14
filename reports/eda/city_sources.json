@@ -1,0 +1,200 @@
+{
+ "listings": {
+  "lodging": 99691,
+  "attraction": 228165,
+  "by_source": {
+   "overture": 231775,
+   "osm": 55836,
+   "wikidata": 36298,
+   "wikivoyage": 3947
+  }
+ },
+ "overture_provider_lodging_share": {
+  "meta": 0.7024270091818838,
+  "BrightQuery": 0.17885329619312906,
+  "Microsoft": 0.08743423088826989,
+  "Foursquare": 0.01655834107087589,
+  "AllThePlaces": 0.013914680697410503,
+  "OpenTravel": 0.0005158361704322707,
+  "Uberall": 0.00025791808521613536,
+  "DAC": 3.8687712782420303e-05,
+  "PinMeTo": 0.0
+ },
+ "overture_confidence": {
+  "p10": 0.4005165576934815,
+  "median": 0.7273168563842773,
+  "below_0.5": 0.15625930320353792
+ },
+ "completeness_lodging": {
+  "overture": {
+   "alternate / local names": 0.0,
+   "coordinates": 1.0,
+   "street address": 0.828884246363355,
+   "postcode": 0.8426699680181574,
+   "phone": 0.6620886206540803,
+   "website": 0.47967605488496856,
+   "Wikidata QID": 0.0,
+   "brand / operator": 0.04387186629526462,
+   "star rating": 0.0
+  },
+  "osm": {
+   "alternate / local names": 0.2096015291868843,
+   "coordinates": 1.0,
+   "street address": 0.4952212909866196,
+   "postcode": 0.39972062931921776,
+   "phone": 0.315100720482282,
+   "website": 0.43758270842523156,
+   "Wikidata QID": 0.12689310395530068,
+   "brand / operator": 0.20599911777679752,
+   "star rating": 0.1921041023378915
+  },
+  "wikidata": {
+   "alternate / local names": 0.03391500140726147,
+   "coordinates": 0.9998592738530819,
+   "street address": 0.0,
+   "postcode": 0.0,
+   "phone": 0.03490008443568815,
+   "website": 0.096819589079651,
+   "Wikidata QID": 1.0,
+   "brand / operator": 0.0,
+   "star rating": 0.0
+  },
+  "wikivoyage": {
+   "alternate / local names": 0.08825573314801946,
+   "coordinates": 0.7574704656011119,
+   "street address": 0.9193884642112579,
+   "postcode": 0.0,
+   "phone": 0.8290479499652537,
+   "website": 0.8082001389854065,
+   "Wikidata QID": 0.0965948575399583,
+   "brand / operator": 0.0,
+   "star rating": 0.0
+  }
+ },
+ "coord_quality": {
+  "overture": {
+   "outside_bbox": 4.3145291770035595e-06,
+   "le3_decimals": 0.0031496062992125984,
+   "shared_point": 0.061374177542875635,
+   "max_on_point": 306
+  },
+  "osm": {
+   "outside_bbox": 0.0,
+   "le3_decimals": 1.7909592377677483e-05,
+   "shared_point": 0.0007522028798624544,
+   "max_on_point": 3
+  },
+  "wikidata": {
+   "outside_bbox": 0.0,
+   "le3_decimals": 0.029135856969429424,
+   "shared_point": 0.02342456682485377,
+   "max_on_point": 35
+  },
+  "wikivoyage": {
+   "outside_bbox": 0.002803738317757009,
+   "le3_decimals": 0.052336448598130844,
+   "shared_point": 0.029595015576323987,
+   "max_on_point": 3
+  }
+ },
+ "non_ascii_name_share": {
+  "dubai": 0.08614232209737828,
+  "bangkok": 0.657271443119477,
+  "singapore": 0.0490107462086974,
+  "delhi": 0.02313874147081122,
+  "mumbai": 0.016103257529194837,
+  "goa": 0.009409969481180062,
+  "london": 0.012724460082504246,
+  "paris": 0.3211427957682187,
+  "amsterdam": 0.023067522150931868,
+  "barcelona": 0.2619779728294292,
+  "vienna": 0.15828895780911698,
+  "milan": 0.03441069935915297
+ },
+ "key_pairs": {
+  "total": 34482,
+  "by_key": {
+   "phone": 11388,
+   "qid": 10352,
+   "url": 7718,
+   "phone+url": 3086,
+   "qid+url": 1483,
+   "phone+qid+url": 228,
+   "phone+qid": 227
+  },
+  "by_city": {
+   "dubai": 1028,
+   "bangkok": 2251,
+   "singapore": 1959,
+   "delhi": 1095,
+   "mumbai": 534,
+   "goa": 3723,
+   "london": 9010,
+   "paris": 5669,
+   "amsterdam": 1796,
+   "barcelona": 1854,
+   "vienna": 3622,
+   "milan": 1941
+  }
+ },
+ "hub_phones": {
+  "phones_over_5_listings": 451,
+  "listings_on_hub_phones": 11883,
+  "largest_hub": 1589,
+  "largest_hub_city": "delhi"
+ },
+ "key_quality": {
+  "phone": {
+   "pairs": 11388,
+   "within_500m": 0.4748858447488584,
+   "over_2km": 0.43414120126448896
+  },
+  "qid": {
+   "pairs": 10352,
+   "within_500m": 0.9889876352395672,
+   "over_2km": 0.0028013910355486863
+  },
+  "url": {
+   "pairs": 7718,
+   "within_500m": 0.7472143042238922,
+   "over_2km": 0.19318476289194092
+  },
+  "phone+url": {
+   "pairs": 3086,
+   "within_500m": 0.948801036941024,
+   "over_2km": 0.027543745949449125
+  },
+  "qid+url": {
+   "pairs": 1483,
+   "within_500m": 0.9919082939986514,
+   "over_2km": 0.0013486176668914363
+  },
+  "phone+qid+url": {
+   "pairs": 228,
+   "within_500m": 0.9956140350877193,
+   "over_2km": 0.0043859649122807015
+  },
+  "phone+qid": {
+   "pairs": 227,
+   "within_500m": 0.9955947136563876,
+   "over_2km": 0.004405286343612335
+  }
+ },
+ "key_pair_difficulty": {
+  "median_dist_m": 22.029789733175335,
+  "p90_dist_m": 6925.648626890518,
+  "gt_300m": 0.2544515979351546,
+  "gt_2km": 0.19004118090597993,
+  "median_jw": 0.87,
+  "jw_lt_0.8": 0.43840264485818686,
+  "jw_alt_lt_0.8": 0.36239197262339773,
+  "names_identical": 0.29566150455310014,
+  "qid_conflict": 0.006032132706919552
+ },
+ "osm_overture_lodging_overlap": {
+  "osm_lodgings": 13602,
+  "obvious_twin": 6336,
+  "share": 0.4658138509042788
+ },
+ "overture_internal_duplicates": 681
+}
