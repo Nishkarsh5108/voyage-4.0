@@ -1,0 +1,21 @@
+# data is never committed; only the download scripts are
+data/
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+node_modules/
+
+# kaggle kernel outputs pulled back for inspection: keep the small metrics file the reports read, drop models and logs
+kaggle/*/output/*
+!kaggle/*/output/metrics.json
+
+# model binaries
+*.lgb
+*.pkl
+*.bin
+*.pt
+*.joblib
+
+# slide renders used only for visual checks
+submission/round1/qa/
