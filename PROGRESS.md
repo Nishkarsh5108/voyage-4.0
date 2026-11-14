@@ -38,7 +38,7 @@ scripts/download/   one script per source (re-runnable, skips what exists)
 scripts/build/      build_listings.py (canonical listing table), embed_names.py (multilingual name vectors, GPU, experiment only)
 scripts/eda/        EDA scripts -> reports/eda/<name>.md + .json + figures; common.py holds the chart style
 scripts/train/      city_matcher.py, ota_matcher.py, rooms_benchmark.py, activities_benchmark.py, report_fsq.py
-scripts/demo/       build_demo_data.py (-> demo/data.js), screenshots.ps1 (-> submission/round1/screens)
+scripts/demo/       build_demo_data.py (-> demo/data.js), build_basemap.py (-> demo/basemap.js, offline map), screenshots.ps1 (-> submission/round1/screens)
 scripts/figures/    round1_figures.py (-> submission/round1/figures + numbers.json)
 scripts/deck/       build_round1_deck.js (pptxgenjs), render.ps1
 kaggle/             kernel folders pushed with `kaggle kernels push -p kaggle/<name>`
@@ -108,6 +108,8 @@ Things to know:
 
 `submission/round1/`: `Canon_Round1.pptx` (cover, two content slides, thank-you, speaker notes), `VIDEO_SCRIPT.md`, `figures/`, `screens/`,
 `numbers.json`, `README.md`. Validation demo to screen-record: `demo/index.html` (six tabs; simulated parts are tagged on screen).
+The demo uses no map tile server: tile.openstreetmap.org blocks pages opened as local files and CARTO needs an API key, so the map is drawn
+from OSM data bundled in `demo/basemap.js` and Leaflet is vendored in `demo/vendor/`. Do not add a tile layer back.
 Every number in the deck is read from `numbers.json`; rebuild steps are in the package README.
 
 ## Next steps
