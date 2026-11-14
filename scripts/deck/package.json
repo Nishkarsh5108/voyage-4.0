@@ -1,0 +1,1 @@
+{"name":"canon-deck","private":true,"description":"Builds the Round 1 deck (pptxgenjs)","dependencies":{"pptxgenjs":"^4.0.1"}}

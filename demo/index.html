@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canon validation demo</title>
+<link rel="stylesheet" href="vendor/leaflet.css">
+<style>
+:root{
+  --bg:#f6f5f1; --surface:#ffffff; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781; --line:#e1e0d9; --accent:#1c5cab; --accent-soft:#e8f0fb;
+  --s-overture:#2a78d6; --s-osm:#eb6834; --s-wikidata:#1baf7a; --s-wikivoyage:#b77c00;
+  --r-same:#1c5cab; --r-variant:#6250d6; --r-includes:#c2410c; --r-diff:#898781; --rate:#9a3412; --rate-soft:#fdeee4; --ok:#006300; --sim:#7a5b00; --sim-soft:#fff6d6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;gap:20px;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--line)}
+.brand{font-weight:700;font-size:20px;letter-spacing:-.01em}
+.brand small{font-weight:500;color:var(--ink2);font-size:14px;margin-left:10px}
+nav{display:flex;gap:6px;margin-left:auto;flex-wrap:wrap}
+nav button{border:1px solid transparent;background:none;padding:8px 14px;border-radius:999px;font:inherit;color:var(--ink2);cursor:pointer}
+nav button:hover{background:var(--bg)}
+nav button.on{background:var(--ink);color:#fff}
+nav button b{font-weight:600;margin-right:6px;opacity:.6}
+main{padding:22px 28px 40px;max-width:1500px;margin:0 auto}
+section{display:none}
+section.on{display:block}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px;letter-spacing:-.015em}
+.lede{color:var(--ink2);max-width:980px;margin:0 0 16px;font-size:16px}
+.row{display:flex;gap:18px;align-items:stretch}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.tiles{display:flex;gap:12px;flex-wrap:wrap;margin:0 0 16px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-width:150px}
+.tile .v{font-size:28px;font-weight:650;letter-spacing:-.02em}
+.tile .l{color:var(--ink2);font-size:13px}
+.tile.arrow{display:flex;align-items:center;border:none;background:none;min-width:0;padding:0 2px;color:var(--muted);font-size:26px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:3px;margin:0 0 14px}
+.seg button{border:0;background:none;padding:7px 16px;border-radius:999px;font:inherit;cursor:pointer;color:var(--ink2)}
+.seg button.on{background:var(--accent);color:#fff}
+.sim{display:inline-block;background:var(--sim-soft);color:var(--sim);border-radius:6px;padding:2px 8px;font-size:12.5px;font-weight:600}
+.note{color:var(--ink2);font-size:13px;margin-top:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;position:relative;transition:box-shadow .15s,border-color .15s,opacity .15s}
+.card h3{margin:0 0 6px;font-size:15.5px;line-height:1.25}
+.card .price{font-weight:650;font-size:18px}
+.card .meta{color:var(--ink2);font-size:13px}
+.card.dim{opacity:.28}
+.card.hit{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink2);margin-right:8px;white-space:nowrap}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.chip{display:inline-block;border-radius:6px;padding:2px 8px;margin:2px 4px 2px 0;font-size:12.5px;background:var(--accent-soft);color:var(--accent);font-weight:550}
+.chip.rate{background:var(--rate-soft);color:var(--rate)}
+.chip.plain{background:#efeee8;color:var(--ink2)}
+.rel{display:inline-block;border-radius:6px;padding:2px 9px;font-size:12px;font-weight:700;color:#fff;letter-spacing:.02em}
+.rel.SAME_AS{background:var(--r-same)} .rel.VARIANT_OF{background:var(--r-variant)} .rel.INCLUDES,.rel.INCLUDED_IN{background:var(--r-includes)} .rel.DIFFERENT{background:var(--r-diff)}
+#map{height:620px;border-radius:12px;border:1px solid var(--line);flex:1 1 60%;min-width:0}
+#side{flex:0 0 470px;max-height:620px;overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--ink2);font-weight:600;font-size:12.5px}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+input[type=search],select{font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);min-width:260px}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.roomrow{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:10px 0;border-bottom:1px solid var(--line);align-items:start}
+.roomrow .raw{font-family:ui-monospace,Consolas,monospace;font-size:14px;font-weight:600}
+.roomrow .name{font-weight:600}
+.arrowto{color:var(--ok);font-weight:650;font-size:13px}
+.bars{display:grid;grid-template-columns:230px 1fr 64px;gap:6px 10px;align-items:center;font-size:13.5px}
+.bar{height:16px;border-radius:0 4px 4px 0;background:var(--s-overture)}
+.bar.alt{background:var(--s-osm)}
+.bar.gray{background:#c3c2b7}
+.barwrap{background:#f0efea;border-radius:0 4px 4px 0}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--ink2);margin:0 0 10px}
+.foot{font-size:12.5px;color:var(--muted);margin-top:10px}
+.best{outline:2px solid var(--ok);outline-offset:-2px;background:#f1f8f1}
+.strike{color:var(--muted)}
+.k{font-weight:650}
+h2{font-size:17px;margin:0 0 10px}
+.leaflet-tooltip.lbl{font:600 13px system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--ink);border:1px solid var(--line);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.leaflet-container{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Canon <small>one canonical product graph across suppliers · validation demo</small></div>
+  <nav id="nav"></nav>
+</header>
+<main>
+
+<section id="mess">
+  <h1>The same hotels, delivered by four feeds</h1>
+  <p class="lede">A search for stays near Dubai Marina. Each card is one listing exactly as a source names it. Hover a card to see its duplicates; switch to the canonical view to see what the agent should get.</p>
+  <div class="seg" id="messSeg"><button data-v="raw" class="on">As the feeds deliver it</button><button data-v="canon">Canonical view</button></div>
+  <span class="sim" style="margin-left:10px">prices and policies are simulated · names and matches are real</span>
+  <div class="tiles" id="messTiles"></div>
+  <div class="grid" id="messGrid"></div>
+</section>
+
+<section id="match">
+  <h1>Matching with evidence</h1>
+  <p class="lede">Every marker is one real hotel in Dubai that at least two independent sources describe. Click one to see the listings that were merged and why.</p>
+  <div class="tiles" id="matchTiles"></div>
+  <div style="margin:0 0 12px"><input type="search" id="q" placeholder="Find a hotel, e.g. Atlantis, Hilton, Burj"></div>
+  <div class="row"><div id="map"></div><div class="panel" id="side"></div></div>
+</section>
+
+<section id="rooms">
+  <h1>Rooms and rates, untangled</h1>
+  <p class="lede">A supplier string mixes the room with the rate plan. The parser splits them, then matches on room attributes only. Left: a second supplier's strings. Right: the hotel's real room names.</p>
+  <select id="hotelSel"></select> <span class="sim" style="margin-left:10px">second supplier's strings are simulated rewrites · room lists are real (Booking.com)</span>
+  <div class="panel" style="margin-top:14px"><div class="roomrow" style="border-bottom:2px solid var(--line);padding-top:0"><div class="k">Supplier B sends</div><div class="k">Canonical room (supplier A's catalogue)</div></div><div id="roomRows"></div></div>
+  <div class="note" id="roomNote"></div>
+</section>
+
+<section id="acts">
+  <h1>Sightseeing: a family, not a duplicate</h1>
+  <p class="lede">Real Klook products for one Singapore attraction. A deduplicator can only say “same” or “different”. The product graph says which relation holds and what the difference is.</p>
+  <select id="famSel"></select> <span class="sim" style="margin-left:10px">lexicon output on real product titles · not hand-checked</span>
+  <div class="cols" style="margin-top:14px"><div><div class="grid" id="actCards" style="grid-template-columns:1fr"></div></div><div class="panel"><h2>Relations inside the family</h2><div id="actRels"></div></div></div>
+</section>
+
+<section id="offer">
+  <h1>The cheapest offer is not always the best one</h1>
+  <p class="lede">Once listings are merged, offers for one hotel sit side by side. Each is priced with its risk: the chance the booking fails or the price jumps, and the value of free cancellation.</p>
+  <select id="offerSel"></select> <span class="sim" style="margin-left:10px">this panel is fully simulated: it shows the mechanism, not a result</span>
+  <div class="panel" style="margin-top:14px"><div id="offerTable"></div>
+    <div style="margin-top:14px;display:flex;gap:28px;align-items:center;flex-wrap:wrap">
+      <label>Cost of a failed booking: <b id="fcv"></b> of price <input type="range" id="fc" min="0" max="100" value="50" style="vertical-align:middle;width:220px"></label>
+      <div id="offerVerdict" style="font-size:16px"></div>
+    </div>
+  </div>
+  <p class="note">Reliability-adjusted price = price + P(fail) × failure cost + P(price change) × expected jump − value of free cancellation.</p>
+</section>
+
+<section id="proof">
+  <h1>Evidence so far</h1>
+  <p class="lede">Measured on public data. Each figure says what kind of truth it was measured against.</p>
+  <div class="tiles" id="proofTiles"></div>
+  <div class="cols">
+    <div class="panel"><h2>Hotel and attraction matching on a city the model never saw</h2><div class="legend"><span><span class="dot" style="background:var(--s-overture)"></span> pair model</span><span><span class="dot" style="background:#c3c2b7"></span> name + distance rule</span><span>share of true matches found, at equal precision</span></div><div class="bars" id="chMatch"></div><div class="foot" id="ftMatch"></div></div>
+    <div class="panel"><h2>Room mapping: share of renamed rooms mapped, by method</h2><div class="bars" id="chRooms"></div><div class="foot" id="ftRooms"></div></div>
+    <div class="panel"><h2>What a plain deduplicator merges into the base product</h2><div class="bars" id="chActs"></div><div class="foot" id="ftActs"></div></div>
+    <div class="panel"><h2>Who settles each candidate pair</h2><div class="bars" id="chCasc"></div><div class="foot" id="ftCasc"></div></div>
+  </div>
+</section>
+
+</main>
+<script src="vendor/leaflet.js"></script>
+<script src="data.js"></script>
+<script src="basemap.js"></script>
+<script>
+const D = window.DEMO, $ = (s, r = document) => r.querySelector(s), el = (t, c, h) => { const e = document.createElement(t); if (c) e.className = c; if (h !== undefined) e.innerHTML = h; return e; };
+const SRC = { overture: ["Overture", "var(--s-overture)"], osm: ["OpenStreetMap", "var(--s-osm)"], wikidata: ["Wikidata", "var(--s-wikidata)"], wikivoyage: ["Wikivoyage", "var(--s-wikivoyage)"] };
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const pct = (x, d = 0) => (x * 100).toFixed(d) + "%", num = x => Number(x).toLocaleString("en-IN");
+const badge = s => `<span class="badge"><span class="dot" style="background:${SRC[s][1]}"></span>${SRC[s][0]}</span>`;
+const tile = (v, l) => `<div class="tile"><div class="v">${v}</div><div class="l">${l}</div></div>`;
+
+/* ---------- navigation ---------- */
+const TABS = [["mess", "The mess"], ["match", "Match"], ["rooms", "Rooms & rates"], ["acts", "Sightseeing"], ["offer", "Best offer"], ["proof", "Evidence"]];
+TABS.forEach(([id, label], i) => { const b = el("button", "", `<b>${i + 1}</b>${label}`); b.onclick = () => go(id); b.dataset.id = id; $("#nav").append(b); });
+function go(id) {
+  document.querySelectorAll("section").forEach(s => s.classList.toggle("on", s.id === id));
+  document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.id === id));
+  history.replaceState(null, "", "#" + id);
+  if (id === "match") initMap();
+}
+
+/* ---------- 1. the mess ---------- */
+const cards = D.offers.cards;
+function renderMess(view) {
+  const g = $("#messGrid"); g.innerHTML = "";
+  const raw = cards.flatMap(c => c.offers.map(o => ({ ...o, hotel: c.id, canon: c.name }))).sort((a, b) => a.price - b.price);
+  $("#messTiles").innerHTML = view === "raw"
+    ? tile(raw.length, "cards on the page") + tile(cards.length, "real hotels behind them") + tile(pct(1 - cards.length / raw.length), "of the page is repetition")
+    : tile(cards.length, "cards, one per hotel") + tile(raw.length, "offers kept, grouped under them") + tile("0", "duplicates");
+  if (view === "raw") raw.forEach(o => {
+    const c = el("div", "card", `<h3>${esc(o.listed_as)}</h3><div class="price">AED ${num(o.price)}</div><div class="meta">${esc(o.policy)} · ${o.pay}</div><div style="margin-top:8px">${badge(o.src)}</div>`);
+    c.onmouseenter = () => g.querySelectorAll(".card").forEach(x => x.classList.toggle("hit", x.dataset.h == o.hotel) || x.classList.toggle("dim", x.dataset.h != o.hotel));
+    c.onmouseleave = () => g.querySelectorAll(".card").forEach(x => x.classList.remove("hit", "dim"));
+    c.dataset.h = o.hotel; g.append(c);
+  });
+  else cards.forEach(c => {
+    const best = [...c.offers].sort((a, b) => a.price - b.price)[0];
+    const names = [...new Set(c.offers.map(o => o.listed_as))];
+    g.append(el("div", "card", `<h3>${esc(c.name)}</h3><div class="price">from AED ${num(best.price)}</div><div class="meta">${c.offers.length} suppliers · best: ${esc(best.policy)}</div>
+      <div style="margin-top:8px">${c.offers.map(o => badge(o.src)).join("")}</div>
+      <div class="meta" style="margin-top:8px">Listed as: ${names.map(n => `<span class="chip plain">${esc(n)}</span>`).join("")}</div>`));
+  });
+}
+$("#messSeg").onclick = e => { if (!e.target.dataset.v) return; $("#messSeg").querySelectorAll("button").forEach(b => b.classList.toggle("on", b === e.target)); renderMess(e.target.dataset.v); };
+renderMess(location.hash.includes("canon") ? "canon" : "raw");
+if (location.hash.includes("canon")) $("#messSeg").querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.v === "canon"));
+
+/* ---------- 2. match ---------- */
+const M = D.matching; let map, markers = {}, layer;
+$("#matchTiles").innerHTML = tile(num(M.listings), "lodging listings from four sources") + `<div class="tile arrow">→</div>` + tile(num(M.entities), "canonical hotels") +
+  tile(num(M.multi_source_entities), "seen in two or more sources") + tile(pct(1 - M.entities / M.listings), "fewer cards");
+function showCluster(c) {
+  const byId = Object.fromEntries(c.members.map(m => [m.rid, m]));
+  const rows = c.members.map(m => `<tr><td>${badge(m.src)}</td><td>${esc(m.name)}</td><td class="num">${m.qid ? esc(m.qid) : ""}</td></tr>`).join("");
+  const ev = [...c.edges].sort((a, b) => b.p - a.p).map(e => `<tr><td>${SRC[byId[e.a].src][0]} ↔ ${SRC[byId[e.b].src][0]}</td><td class="num">${e.d} m</td><td class="num">${e.jw.toFixed(2)}</td><td class="num">${e.p.toFixed(2)}</td><td>${e.key ? `<span class="chip">shared ${esc(e.key.replace("qid", "Wikidata ID"))}</span>` : (e.p >= M.threshold ? `<span class="chip plain">model ≥ ${M.threshold}</span>` : `<span class="chip plain">joined through another pair</span>`)}</td></tr>`).join("");
+  $("#side").innerHTML = `<h2>${esc(c.name)}</h2><div class="meta" style="color:var(--ink2);margin-bottom:10px">${c.members.length} listings merged into one hotel</div>
+    <table><tr><th>Source</th><th>Listed as</th><th class="num">Wikidata</th></tr>${rows}</table>
+    <h2 style="margin-top:16px">Why they were merged</h2>
+    <table><tr><th>Pair</th><th class="num">Distance</th><th class="num">Name sim.</th><th class="num">Score</th><th>Decided by</th></tr>${ev}</table>
+    <div class="foot">Phone, website and Wikidata ID are never model inputs. They act as rules and as the independent truth the model is tested against.</div>
+    <h2 style="margin-top:18px">Review queue: pairs the model is unsure about</h2>
+    <table><tr><th>Listing A</th><th>Listing B</th><th class="num">Dist.</th><th class="num">Score</th></tr>${M.review.slice(0, 7).map(r => `<tr><td>${esc(r.a)}</td><td>${esc(r.b)}</td><td class="num">${r.d} m</td><td class="num">${r.p.toFixed(2)}</td></tr>`).join("")}</table>`;
+  if (layer) layer.remove();
+  layer = L.layerGroup().addTo(map);
+  L.tooltip({ permanent: true, direction: "top", offset: [0, -12], className: "lbl" }).setLatLng([c.lat, c.lon]).setContent(esc(c.name)).addTo(layer);
+  c.members.forEach(m => { L.polyline([[c.lat, c.lon], [m.lat, m.lon]], { color: "#0b0b0b", weight: 1.5, opacity: .55 }).addTo(layer);
+    L.circleMarker([m.lat, m.lon], { radius: 7, color: "#fff", weight: 2, fillColor: getComputedStyle(document.documentElement).getPropertyValue("--s-" + m.src).trim(), fillOpacity: 1 }).bindTooltip(SRC[m.src][0] + ": " + m.name).addTo(layer); });
+}
+function initMap() {
+  if (map) { map.invalidateSize(); return; }
+  map = L.map("map", { preferCanvas: true }).setView([25.12, 55.2], 11);
+  // No tile server: public ones refuse a page opened as a local file or need an API key. The basemap is drawn from
+  // OpenStreetMap data bundled in basemap.js (scripts/demo/build_basemap.py), so this tab works offline.
+  $("#map").style.background = "#f3f4f0";
+  map.attributionControl.setPrefix(false).addAttribution("Map data © OpenStreetMap contributors");
+  const B = window.BASEMAP;
+  if (B) {
+    map.createPane("base").style.zIndex = 250;
+    const r = L.canvas({ pane: "base", padding: 0.3 }), o = { pane: "base", renderer: r, interactive: false };
+    L.polygon(B.water.map(x => [x]), { ...o, stroke: false, fillColor: "#cfe1f0", fillOpacity: 1 }).addTo(map);
+    L.polyline(B.minor, { ...o, color: "#d9d5c9", weight: 1.4 }).addTo(map);
+    L.polyline(B.primary, { ...o, color: "#cfc9b9", weight: 2.2 }).addTo(map);
+    L.polyline(B.major, { ...o, color: "#c2baa4", weight: 3.2 }).addTo(map);
+    L.polyline(B.coast, { ...o, color: "#6f9bc2", weight: 1.8 }).addTo(map);
+  }
+  M.clusters.forEach(c => { const n = new Set(c.members.map(m => m.src)).size;
+    markers[c.id] = L.circleMarker([c.lat, c.lon], { radius: 3 + n, color: "#fff", weight: 1, fillColor: "#1c5cab", fillOpacity: .8 }).bindTooltip(c.name + " · " + c.members.length + " listings").on("click", () => showCluster(c)).addTo(map); });
+  const first = M.clusters.find(c => /atlantis/i.test(c.name)) || M.clusters[0];
+  focus(first);
+}
+function focus(c) { map.setView([c.lat, c.lon], 15); showCluster(c); }
+$("#q").oninput = e => { const v = e.target.value.trim().toLowerCase(); if (v.length < 3 || !map) return; const c = M.clusters.find(c => c.name.toLowerCase().includes(v) || c.members.some(m => m.name.toLowerCase().includes(v))); if (c) focus(c); };
+
+/* ---------- 3. rooms ---------- */
+const chips = p => [...new Set([p.type !== "room" ? p.type : null, ...p.class, ...p.beds.map(b => b + " bed"), p.view ? (p.view === "view" ? "view" : p.view + " view") : null, ...p.features.map(f => f.replace(/_/g, " ")), ...p.name_tokens].filter(Boolean))].map(x => `<span class="chip">${esc(x)}</span>`).join("");
+const BOARD = { BB: "breakfast", RO: "room only", HB: "half board", FB: "full board", AI: "all inclusive" };
+const rateChips = p => [p.board ? BOARD[p.board] : null, p.refundable === false ? "non-refundable" : p.refundable === true ? "free cancellation" : null, ...p.inclusions.map(i => i.replace(/_/g, " ")), p.promo ? "promotion" : null].filter(Boolean).map(x => `<span class="chip rate">${esc(x)}</span>`).join("");
+D.rooms.forEach((h, i) => $("#hotelSel").append(new Option(h.hotel, i)));
+function renderRooms(i) {
+  const h = D.rooms[i]; const box = $("#roomRows"); box.innerHTML = "";
+  h.b.forEach(b => { const a = b.mapped !== null ? h.a[b.mapped] : null;
+    box.append(el("div", "roomrow", `<div><div class="raw">${esc(b.name)}</div><div style="margin-top:4px">${chips(b.parsed)} ${rateChips(b.parsed) ? `<span style="color:var(--muted);font-size:12.5px;margin:0 4px">rate plan →</span>${rateChips(b.parsed)}` : ""}</div></div>
+      <div>${a ? `<div class="arrowto">→ matched on room attributes</div><div class="name">${esc(a.name)}</div><div class="meta" style="color:var(--ink2);font-size:13px">${num(a.bookings)} reviews mention this room</div>` : `<div class="strike">left unmapped: sent to the model stage</div>`}</div>`)); });
+  const ok = h.b.filter(b => b.mapped === b.true).length;
+  $("#roomNote").textContent = `${ok} of ${h.b.length} strings mapped to the right room for this hotel. Across ${num(D.evidence.rooms.hotels)} hotels and ${num(D.evidence.rooms.strings)} renamed strings: ${pct(D.evidence.rooms.methods["attribute parser (canon.rooms)"].coverage)} mapped at ${pct(D.evidence.rooms.methods["attribute parser (canon.rooms)"].precision, 2)} precision.`;
+}
+$("#hotelSel").onchange = e => renderRooms(+e.target.value); renderRooms(0);
+
+/* ---------- 4. sightseeing ---------- */
+const RELTXT = { SAME_AS: "SAME AS", VARIANT_OF: "VARIANT OF", INCLUDES: "INCLUDES", INCLUDED_IN: "INCLUDED IN", DIFFERENT: "DIFFERENT" };
+D.activities.forEach((f, i) => $("#famSel").append(new Option(f.family, i)));
+function renderActs(i) {
+  const f = D.activities[i]; const L1 = "ABCDEFGH";
+  $("#actCards").innerHTML = f.items.map((p, k) => `<div class="card"><h3><span class="chip plain">${L1[k]}</span>${esc(p.clean)}</h3>
+    <div class="meta">${p.price ? p.currency + " " + p.price : ""} · ${num(p.booked)} booked · ${esc(p.policy.replace(/_/g, " "))}</div>
+    <div style="margin-top:6px">${p.attractions.map(a => `<span class="chip">${esc(a)}</span>`).join("")}${p.access !== "standard" ? `<span class="chip">${esc(p.access.replace(/_/g, " "))}</span>` : ""}${p.inclusions.map(a => `<span class="chip">+ ${esc(a.replace(/_/g, " "))}</span>`).join("")}${p.tags.map(t => `<span class="chip plain">tag: ${esc(t)}</span>`).join("")}</div>
+    ${p.options.length > 1 ? `<div class="meta" style="margin-top:6px">Options: ${p.options.map(o => esc(o)).join(" · ")}</div>` : ""}</div>`).join("");
+  $("#actRels").innerHTML = `<table><tr><th>Pair</th><th>Relation</th><th>Difference</th></tr>${f.relations.map(r => `<tr><td class="k">${L1[r.a]} → ${L1[r.b]}</td><td><span class="rel ${r.relation}">${RELTXT[r.relation]}</span></td><td>${r.diff.map(d => `<span class="chip plain">${esc(d.replace(/_/g, " ").replace("->", "→"))}</span>`).join("") || `<span style="color:var(--muted)">${esc(r.reason)}</span>`}</td></tr>`).join("")}</table>
+    <div class="foot">On ${D.evidence.activities.pairs} test pairs with a simulated second supplier, a plain deduplicator merges ${pct(D.evidence.activities.dedup_merges.VARIANT_OF)} of variants and ${pct(D.evidence.activities.dedup_merges.INCLUDES)} of combos into the base product.</div>`;
+}
+$("#famSel").onchange = e => renderActs(+e.target.value); renderActs(0);
+
+/* ---------- 5. best offer ---------- */
+cards.forEach((c, i) => $("#offerSel").append(new Option(c.name, i)));
+function renderOffer() {
+  const c = cards[+$("#offerSel").value], fc = +$("#fc").value / 100, P = D.offers.params; $("#fcv").textContent = pct(fc);
+  const rows = c.offers.map(o => { const flex = o.cutoff_h ? P.flex_value_share * o.price : 0; return { ...o, raep: o.price + o.fail * fc * o.price + o.chg * P.price_jump_share * o.price - flex }; });
+  const cheapest = rows.reduce((a, b) => a.price <= b.price ? a : b), best = rows.reduce((a, b) => a.raep <= b.raep ? a : b);
+  $("#offerTable").innerHTML = `<table><tr><th>Supplier</th><th>Listed as</th><th class="num">Price (AED)</th><th>Cancellation</th><th class="num">Booking fails</th><th class="num">Price jumps</th><th class="num">Reliability-adjusted</th><th></th></tr>${rows.map(o => `<tr class="${o === best ? "best" : ""}"><td>${esc(o.supplier)}</td><td>${esc(o.listed_as)}</td><td class="num">${num(o.price)}</td><td>${esc(o.policy)}</td><td class="num">${pct(o.fail, 1)}</td><td class="num">${pct(o.chg)}</td><td class="num k">${num(Math.round(o.raep))}</td><td>${o === best ? "✓ shown to the agent" : o === cheapest ? "cheapest on paper" : ""}</td></tr>`).join("")}</table>`;
+  $("#offerVerdict").innerHTML = best === cheapest ? `Here the cheapest offer is also the best once risk is priced in: <b>${esc(best.supplier)}</b>.` : `<b>${esc(best.supplier)}</b> is AED ${num(best.price - cheapest.price)} dearer than ${esc(cheapest.supplier)} on paper, and AED ${num(Math.round(cheapest.raep - best.raep))} better once failure risk, price jumps and cancellation terms are priced in.`;
+}
+$("#offerSel").onchange = renderOffer; $("#fc").oninput = renderOffer; renderOffer();
+
+/* ---------- 6. evidence ---------- */
+const E = D.evidence;
+$("#proofTiles").innerHTML = tile(num(E.data.lodging_listings + E.data.attraction_listings), "real listings, 4 sources, 12 cities") + tile(num(E.data.key_pairs), "cross-source pairs linked by an independent key") +
+  tile(E.matching.auc.toFixed(3), "pair model AUC on unseen cities") + tile(pct(E.rooms.methods["attribute parser (canon.rooms)"].coverage), "renamed rooms mapped at " + pct(E.rooms.methods["attribute parser (canon.rooms)"].precision, 2) + " precision (simulated 2nd supplier)") +
+  tile(E.activities.macro_f1.toFixed(2), "macro-F1, four relation types (simulated 2nd supplier)") + tile(num(E.ota.accepted_pairs), "hotel pairs found across two real Indian OTA feeds");
+const bars = (id, rows) => { $(id).innerHTML = rows.map(r => `<div>${esc(r[0])}</div><div class="barwrap" title="${esc(r[0])}: ${esc(r[2])}"><div class="bar ${r[3] || ""}" style="width:${Math.max(r[1] * 100, .5)}%"></div></div><div class="k">${esc(r[2])}</div>`).join(""); };
+bars("#chMatch", ["dubai", "bangkok", "singapore", "all 12 cities"].flatMap(c => { const v = E.fair[c]; const n = c[0].toUpperCase() + c.slice(1); return [[n + (c.startsWith("all") ? "" : " held out"), v.model_recall_at_rule_precision, pct(v.model_recall_at_rule_precision)], [n + ": rule", v.rule_recall, pct(v.rule_recall), "gray"]]; }));
+$("#ftMatch").textContent = `Trained on 11 cities, tested on the 12th; both read at the rule's own precision (${pct(E.fair["all 12 cities"].rule_precision)} overall). At the rule's recall the model makes ${pct(E.fair["all 12 cities"].model_errors_at_rule_recall, 1)} wrong merges against the rule's ${pct(E.fair["all 12 cities"].rule_errors, 1)}. ${num(E.matching.positives)} matches and ${num(E.matching.negatives)} non-matches from ${E.matching.label_note}.`;
+bars("#chRooms", Object.entries(E.rooms.methods).map(([k, v]) => [k.replace(" (canon.rooms)", ""), v.coverage, pct(v.coverage), k.startsWith("attribute") ? "" : "gray"]));
+$("#ftRooms").textContent = `${num(E.rooms.hotels)} real hotels, ${num(E.rooms.strings)} renamed strings; every method is at 98.6% precision or higher. ${E.rooms.note}.`;
+bars("#chActs", [["Variants (pickup, meal, child…)", E.activities.dedup_merges.VARIANT_OF, pct(E.activities.dedup_merges.VARIANT_OF), "alt"], ["Combos (two attractions)", E.activities.dedup_merges.INCLUDES, pct(E.activities.dedup_merges.INCLUDES), "alt"], ["True duplicates", E.activities.dedup_merges.SAME_AS, pct(E.activities.dedup_merges.SAME_AS), "gray"]]);
+$("#ftActs").textContent = `String similarity ≥ 85 treats nearly every variant and combo as a duplicate. The typed-relation function scores ${pct(E.activities.accuracy)} accuracy on the same ${E.activities.pairs} pairs. ${E.activities.note}.`;
+const cz = E.matching.cascade, tot = cz.candidates;
+bars("#chCasc", [["Key rules (ID, phone, URL)", (cz.stage0_key_match + cz.stage0_key_reject) / tot, pct((cz.stage0_key_match + cz.stage0_key_reject) / tot)], ["Cheap model, confident", (cz.stage2_model_accept + cz.stage2_model_reject) / tot, pct((cz.stage2_model_accept + cz.stage2_model_reject) / tot)], ["Uncertain → cross-encoder, LLM, human", cz.uncertain_to_next_stage / tot, pct(cz.uncertain_to_next_stage / tot), "alt"]]);
+$("#ftCasc").textContent = `${num(tot)} candidate pairs across 12 cities. Expensive models see only the uncertain share, so cost follows hard cases, not catalogue size.`;
+
+go((location.hash || "#mess").slice(1).split("-")[0]);
+</script>
+</body>
+</html>
