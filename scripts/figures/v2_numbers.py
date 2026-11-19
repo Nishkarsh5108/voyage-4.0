@@ -47,6 +47,11 @@ def add_v2(numbers: dict) -> dict:
             "auc": [a["auc"], b["auc"]], "average_precision": [a["ap"], b["ap"]], "recall_at_99_precision": [a["recall@p0.99"], b["recall@p0.99"]],
             "precision_at_95_recall": [a["precision@r0.95"], b["precision@r0.95"]],
             "cities_with_higher_ap": sum(1 for v in pc.values() if v["stage2"]["ap"] > v["stage1"]["ap"]), "cities": len(pc)}
+        x3 = _read(ROOT / "kaggle" / "city_xenc" / "output" / "metrics_city_xenc.json")
+        if x3:  # stage 3: xlm-roberta cross-encoder stacked on stage 2, leave-four-cities-out
+            s3 = x3["pooled"]["stage 3 (stage 2 + cross-encoder)"]
+            numbers["matching_stage2"].update({"stage3_model": x3["base_model"], "stage3_average_precision": s3["ap"], "stage3_auc": s3["auc"],
+                                               "stage3_precision_at_95_recall": s3["precision@r0.95"], "stage3_recall_at_99_precision": s3["recall@p0.99"]})
     rs = _read(REP / "rooms_semantic.json")
     if rs:
         m = rs["methods"]

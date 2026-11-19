@@ -230,7 +230,12 @@
    0.9274193548387096
   ],
   "cities_with_higher_ap": 11,
-  "cities": 12
+  "cities": 12,
+  "stage3_model": "xlm-roberta-base",
+  "stage3_average_precision": 0.9833355717582456,
+  "stage3_auc": 0.9959842297813969,
+  "stage3_precision_at_95_recall": 0.9351084183673469,
+  "stage3_recall_at_99_precision": 0.6883858427148295
  },
  "rooms_semantic": {
   "truth": "same simulated second supplier as rooms; thresholds on 20% of hotels, scores on the other 80%",

@@ -178,7 +178,9 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
       `scripts/train/activities_llm_report.py` -> `reports/models/activities_llm.md`: **held out, rules 74.2%, LLM 87.4%, cascade 87.2%**
       (cascade policy cross-fitted on product halves of the held-out set; the kernel's own in-sample-chosen cascade, 75.9%, is not used).
       LLM wins on private / transfer / fast-track / time phrasings, loses on meals (57% vs 81%).
-- [ ] City matcher stage 3: `scripts/train/city_xenc_data.py` builds dataset `nishkarshsinghal/canon-city-pairs` (labelled pairs,
+- [x] City matcher stage 3 (done 02:35, 34 min on T4 x2): **AP 0.9824 -> 0.9833, precision at 95% recall 92.7% -> 93.5%, band AUC
+      0.969 -> 0.972; cross-encoder alone matches the stage-1 GBDT (AP 0.975); Dubai AP 0.965 -> 0.976.** Report
+      `reports/models/city_matcher_xenc.md`. `scripts/train/city_xenc_data.py` builds dataset `nishkarshsinghal/canon-city-pairs` (labelled pairs,
       record text without phone / URL / QID); kernel `canon-city-xenc` (`kaggle/city_xenc/city_xenc.py`, pushed 02:00) fine-tunes
       xlm-roberta-base leave-4-cities-out (3 folds) and stacks it on stage 2; writes `city_matcher_xenc.md` + `metrics_city_xenc.json`.
       Pull with `kaggle kernels output nishkarshsinghal/canon-city-xenc -p kaggle/city_xenc/output`, copy the md to reports/models.
