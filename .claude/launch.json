@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "canon-web",
+      "runtimeExecutable": "D:/Coding/Hackathon/voyage_4.0/.venv/Scripts/python.exe",
+      "runtimeArgs": ["-X", "utf8", "web/serve.py", "--port", "8766"],
+      "port": 8766
+    }
+  ]
+}

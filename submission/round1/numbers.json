@@ -210,5 +210,41 @@
   "macro_f1": 0.9643443411625751,
   "dedup_merges_variants": 0.9540229885057471,
   "dedup_merges_combos": 1.0
+ },
+ "matching_stage2": {
+  "truth": "same weak labels and leave-one-city-out protocol as matching; nested so stage 2 never sees the held-out city",
+  "auc": [
+   0.994396741046379,
+   0.9956688259612712
+  ],
+  "average_precision": [
+   0.9760572865532292,
+   0.9824265720676245
+  ],
+  "recall_at_99_precision": [
+   0.6136308414999595,
+   0.6982262897869927
+  ],
+  "precision_at_95_recall": [
+   0.8880981223500909,
+   0.9274193548387096
+  ],
+  "cities_with_higher_ap": 11,
+  "cities": 12
+ },
+ "rooms_semantic": {
+  "truth": "same simulated second supplier as rooms; thresholds on 20% of hotels, scores on the other 80%",
+  "parser_correct": 0.9587840173852916,
+  "parser_precision": 0.9998969842128306,
+  "embedding_correct": 0.8066627154640194,
+  "embedding_precision": 0.990328644191123,
+  "cascade_correct": 0.9984442139576234,
+  "cascade_precision": 0.9984442139576234
+ },
+ "sightseeing_heldout": {
+  "truth": "same real products; second supplier simulated with templates written after the rules were frozen",
+  "pairs": 783,
+  "rules_accuracy": 0.7420178799489144,
+  "rules_macro_f1": 0.7423214686281435
  }
 }
