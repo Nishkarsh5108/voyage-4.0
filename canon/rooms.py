@@ -16,6 +16,8 @@ import re
 import unicodedata
 from dataclasses import asdict, dataclass, field
 
+from canon._trace import SpanTrace
+
 # ----------------------------------------------------------------------------- normalisation
 ABBREV = {
     "dbl": "double", "dble": "double", "twn": "twin", "sgl": "single", "sngl": "single", "tpl": "triple", "trpl": "triple", "trp": "triple",
@@ -120,9 +122,26 @@ def _take(s: str, pattern: str):
     return m, s[:m.start()] + " " + s[m.end():]
 
 
-def parse_room(text: str) -> ParsedRoom:
+SIZE_PAT = r"(\d{2,3}) ?(sqm|sq m|m2|square met(er|re)s?)"
+OCC_PAT = r"(\d) (adults?|persons?|people|guests?|pax)( (and )?\d (child(ren)?|kids?))?"
+OCC_USE_PAT = r"(single|double|triple) (use|occupancy)"
+BEDROOMS_PAT = r"(\d|one|two|three|four|five|six) bedrooms?"
+VIEW_PAT = rf"{VIEW} (and {VIEW} )?views?"
+VIEW_ANY_PAT = r"(with |partial |side )?views?"
+BED_COUNT_PAT = r"(\d|one|two|three|four) (king|queen|double|twin|single|bunk)( size)? beds?"
+CLASS_MAP = {"cozy": "cosy", "premier": "premium", "compact": "small", "budget": "economy", "basic": "economy"}
+
+
+def parse_room(text: str, trace: list | None = None) -> ParsedRoom:
+    """Parse one supplier room string.
+
+    trace: optional list. When given, one dict per rule that fired is appended (group, attr, value, the lexicon pattern,
+    the matched text and its [start, end) span in `normalise(text)`), in the order the rules ran. Tracing only observes:
+    the returned ParsedRoom is the same with or without it.
+    """
     p = ParsedRoom(raw=text)
     s = normalise(text)
+    tr = SpanTrace(s, trace) if trace is not None else None
     n_tokens = max(len(s.split()), 1)
 
     # ---- rate side first, so "breakfast" or "offer" never leaks into the room side
@@ -130,67 +149,93 @@ def parse_room(text: str) -> ParsedRoom:
         m, s = _take(s, pat)
         if m:
             p.board = val
+            if tr is not None:
+                tr.hit(m, "BOARD", "board", val, pat)
             break
     for pat, val in REFUND:
         m, s = _take(s, pat)
         if m:
             p.refundable = val
+            if tr is not None:
+                tr.hit(m, "REFUND", "refundable", val, pat)
             break
     inc = []
     for pat, val in INCLUSIONS:
         m, s = _take(s, pat)
         if m:
             inc.append(val)
+            if tr is not None:
+                tr.hit(m, "INCLUSIONS", "inclusions", val, pat)
     p.inclusions = tuple(sorted(inc))
     while True:
         m, s = _take(s, PROMO)
         if not m:
             break
         p.promo = True
+        if tr is not None:
+            tr.hit(m, "PROMO", "promo", True, PROMO)
 
     # ---- size, occupancy, counts
-    m, s = _take(s, r"(\d{2,3}) ?(sqm|sq m|m2|square met(er|re)s?)")
+    m, s = _take(s, SIZE_PAT)
     if m:
         p.size_m2 = float(m.group(1))
-    m, s = _take(s, r"(\d) (adults?|persons?|people|guests?|pax)( (and )?\d (child(ren)?|kids?))?")
+        if tr is not None:
+            tr.hit(m, "SIZE", "size_m2", p.size_m2, SIZE_PAT)
+    m, s = _take(s, OCC_PAT)
     if m:
         p.occupancy = int(m.group(1))
-    m, s = _take(s, r"(single|double|triple) (use|occupancy)")
+        if tr is not None:
+            tr.hit(m, "OCCUPANCY", "occupancy", p.occupancy, OCC_PAT)
+    m, s = _take(s, OCC_USE_PAT)
     if m:
         p.occupancy = {"single": 1, "double": 2, "triple": 3}[m.group(1)]
-    m, s = _take(s, r"(\d|one|two|three|four|five|six) bedrooms?")
+        if tr is not None:
+            tr.hit(m, "OCCUPANCY", "occupancy", p.occupancy, OCC_USE_PAT)
+    m, s = _take(s, BEDROOMS_PAT)
     if m:
         p.bedrooms = NUM.get(m.group(1), None) or int(m.group(1))
+        if tr is not None:
+            tr.hit(m, "BEDROOMS", "bedrooms", p.bedrooms, BEDROOMS_PAT)
 
     # ---- view (before features, so "garden view" is a view and "garden" alone a feature)
-    m, s = _take(s, rf"{VIEW} (and {VIEW} )?views?")
+    m, s = _take(s, VIEW_PAT)
     if m:
         p.view = m.group(1).replace("harbor", "harbour")  # "partial sea" stays distinct from "sea": hotels sell both
+        if tr is not None:
+            tr.hit(m, "VIEW", "view", p.view, VIEW_PAT)
     else:
-        m, s = _take(s, r"(with |partial |side )?views?")
+        m, s = _take(s, VIEW_ANY_PAT)
         if m:
             p.view = "view"
+            if tr is not None:
+                tr.hit(m, "VIEW", "view", p.view, VIEW_ANY_PAT)
     feats = []
     for pat, val in FEATURES:
         m, s = _take(s, pat)
         if m:
             feats.append(val)
+            if tr is not None:
+                tr.hit(m, "FEATURES", "features", val, pat)
     p.features = tuple(sorted(set(feats)))
 
     # ---- beds: "2 queen beds", "1 king bed", then bare bed words
     beds = []
-    m, s = _take(s, r"(\d|one|two|three|four) (king|queen|double|twin|single|bunk)( size)? beds?")
+    m, s = _take(s, BED_COUNT_PAT)
     if m:
         p.bed_count = NUM.get(m.group(1), None) or int(m.group(1))
         beds.append(m.group(2))
         if p.bed_count == 2 and m.group(2) in ("single", "twin"):
             beds[-1], p.bed_count = "twin", None  # two single beds is what "twin" means
+        if tr is not None:
+            tr.hit(m, "BED_COUNT", "beds", beds[-1], BED_COUNT_PAT, bed_count=p.bed_count)
     for pat, val in BED:
         while True:
             m, s = _take(s, pat)
             if not m:
                 break
             beds.extend(val)
+            if tr is not None:
+                tr.hit(m, "BED", "beds", list(val), pat)
     p.beds = tuple(sorted(set(beds)))
 
     # ---- room type and class
@@ -198,14 +243,30 @@ def parse_room(text: str) -> ParsedRoom:
         m, s2 = _take(s, pat)
         if m:
             p.room_type = val
-            s = s2 if val != "suite" or "junior" not in m.group(0) else s.replace("junior suite", "junior", 1)
+            if val != "suite" or "junior" not in m.group(0):
+                if tr is not None:
+                    tr.hit(m, "ROOM_TYPE", "room_type", val, pat)
+                s = s2
+            else:  # "junior suite": the type is suite and "junior" stays behind for the class lexicon
+                if tr is not None:
+                    i = s.find("junior suite")
+                    a, b = tr.span(i + 7, i + 12)
+                    tr.out.append({"group": "ROOM_TYPE", "attr": "room_type", "value": val, "pattern": pat, "matched": m.group(0),
+                                   "start": a, "end": b, "note": "junior is left for the class lexicon"})
+                    if tr.pos is not None:
+                        tr.pos = tr.pos[:i + 6] + tr.pos[i + 12:]
+                s = s.replace("junior suite", "junior", 1)
             break
     classes = []
     for c in CLASS:
         m, s = _take(s, c)
         if m:
-            classes.append({"cozy": "cosy", "premier": "premium", "compact": "small", "budget": "economy", "basic": "economy"}.get(c, c))
+            classes.append(CLASS_MAP.get(c, c))
+            if tr is not None:
+                tr.hit(m, "CLASS", "room_class", CLASS_MAP.get(c, c), c)
     p.room_class = tuple(sorted(set(classes)))
+    if tr is not None:
+        tr.check(s)
 
     # ---- what is left: proper names (kept as identity) and noise
     rest = [t for t in s.split() if t not in STOP and not t.isdigit()]

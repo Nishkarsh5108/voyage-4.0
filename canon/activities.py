@@ -22,6 +22,8 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 
+from canon._trace import SpanTrace
+
 
 def norm(s: str) -> str:
     s = unicodedata.normalize("NFKD", (s or "").lower())
@@ -104,11 +106,54 @@ def _take(s: str, pattern: str):
     return m, s[:m.start()] + " " + s[m.end():]
 
 
-def parse_activity(title: str, option: str | None = None, gazetteer: Gazetteer | None = None) -> ActivityAttrs:
-    """Parse a product title, optionally with one of its option names, into comparable attributes."""
+HOURS_PAT, MINUTES_PAT, DAYS_PAT = r"(\d+(\.\d+)?) ?(hours?|hrs?|h)", r"(\d+) ?(minutes?|mins?)", r"(\d+) ?days?"
+
+
+def _gazetteer_shadow(tr: SpanTrace, gazetteer: Gazetteer, s: str, found_s: str) -> None:
+    """Follow Gazetteer.find's edits (pad, replace each name with ' | ', strip) with the position map; record each name found."""
+    if tr.pos is None:
+        return
+    t, pos = f" {s} ", [-1] + tr.pos + [-1]
+    for k in gazetteer.names:
+        sub = f" {k} "
+        if sub not in t:
+            continue
+        out, opos, i = [], [], 0
+        while True:  # str.replace semantics: non-overlapping, left to right
+            j = t.find(sub, i)
+            if j < 0:
+                break
+            out.append(t[i:j])
+            opos += pos[i:j]
+            idx = [q for q in pos[j + 1:j + 1 + len(k)] if q >= 0]
+            tr.out.append({"group": "GAZETTEER", "attr": "attractions", "value": gazetteer.display.get(k, k), "pattern": k, "matched": k,
+                           "start": min(idx) if idx else None, "end": max(idx) + 1 if idx else None})
+            out.append(" | ")
+            opos += [-1, -1, -1]
+            i = j + len(sub)
+        out.append(t[i:])
+        opos += pos[i:]
+        t, pos = "".join(out), opos
+    lead = len(t) - len(t.lstrip())
+    stripped = t.strip()
+    tr.pos = pos[lead:lead + len(stripped)] if stripped == found_s else None
+
+
+def parse_activity(title: str, option: str | None = None, gazetteer: Gazetteer | None = None, trace: list | None = None) -> ActivityAttrs:
+    """Parse a product title, optionally with one of its option names, into comparable attributes.
+
+    trace: optional list. When given, one dict per rule that fired is appended (group, attr, value, pattern, matched text and
+    its [start, end) span in the normalised title, i.e. `norm` of the title with [bracket tags] removed; bracket tags are
+    reported with their span in the raw title and `where: "raw"`). Tracing only observes: the result is the same without it.
+    """
     a = ActivityAttrs(raw=title if not option else f"{title} :: {option}")
     tags = [norm(t) for t in re.findall(r"\[([^\]]+)\]", a.raw)]
     s = norm(re.sub(r"\[[^\]]+\]", " ", a.raw))
+    tr = SpanTrace(s, trace) if trace is not None else None
+    if tr is not None:
+        for mt in re.finditer(r"\[([^\]]+)\]", a.raw):
+            tr.out.append({"group": "TAG", "attr": "promo_tags", "value": norm(mt.group(1)), "pattern": r"\[...\]", "matched": mt.group(0),
+                           "start": mt.start(), "end": mt.end(), "where": "raw"})
     n_tok = max(len(s.split()), 1)
     promo = list(tags)
     while True:
@@ -116,59 +161,92 @@ def parse_activity(title: str, option: str | None = None, gazetteer: Gazetteer |
         if not m:
             break
         promo.append(m.group(0))
+        if tr is not None:
+            tr.hit(m, "PROMO", "promo_tags", m.group(0), PROMO)
     a.promo_tags = tuple(sorted(set(promo)))
     tag_text = " ".join(tags)
     if gazetteer:
+        before = s
         a.attractions, s = gazetteer.find(s)
+        if tr is not None:
+            _gazetteer_shadow(tr, gazetteer, before, s)
     a.is_combo_worded = bool(re.search(COMBO_WORDS, f" {s} ")) or len(a.attractions) > 1
+    if tr is not None and a.is_combo_worded:
+        mc = re.search(COMBO_WORDS, f" {s} ")
+        tr.note("COMBO_WORDS", "is_combo_worded", True, COMBO_WORDS, mc.group(0).strip() if mc else f"{len(a.attractions)} attractions")
 
-    m, s = _take(s, r"(\d+(\.\d+)?) ?(hours?|hrs?|h)")
+    m, s = _take(s, HOURS_PAT)
     if m:
         a.duration_min = int(float(m.group(1)) * 60)
+        if tr is not None:
+            tr.hit(m, "DURATION", "duration_min", a.duration_min, HOURS_PAT)
     else:
-        m, s = _take(s, r"(\d+) ?(minutes?|mins?)")
+        m, s = _take(s, MINUTES_PAT)
         if m:
             a.duration_min = int(m.group(1))
+            if tr is not None:
+                tr.hit(m, "DURATION", "duration_min", a.duration_min, MINUTES_PAT)
         else:
-            m, s = _take(s, r"(\d+) ?days?")
+            m, s = _take(s, DAYS_PAT)
             if m:
                 a.duration_min = int(m.group(1)) * 24 * 60
+                if tr is not None:
+                    tr.hit(m, "DURATION", "duration_min", a.duration_min, DAYS_PAT)
     for pat, val in ACCESS:
         m, s2 = _take(s + " " + tag_text, pat)
         if m:
             a.access = val
-            _, s = _take(s, pat)
+            m2, s = _take(s, pat)
+            if tr is not None:
+                if m2:
+                    tr.hit(m2, "ACCESS", "access", val, pat)
+                else:
+                    tr.note("ACCESS", "access", val, pat, m.group(0), where="tag")
             break
     inc = []
     for pat, val in INCLUSIONS:
         m, s = _take(s, pat)
         if m:
             inc.append(val)
+            if tr is not None:
+                tr.hit(m, "INCLUSIONS", "inclusions", val, pat)
     a.inclusions = frozenset(inc)
     for pat, val in AGE:
         m, s = _take(s, pat)
         if m:
             a.age_band = val
+            if tr is not None:
+                tr.hit(m, "AGE", "age_band", val, pat)
             break
     for pat, val in GROUP:
         m, s = _take(s, pat)
         if m:
             a.group = val
+            if tr is not None:
+                tr.hit(m, "GROUP", "group", val, pat)
             break
     m, s = _take(s, RESIDENT)
     if m:
         a.resident_only = True
+        if tr is not None:
+            tr.hit(m, "RESIDENT", "resident_only", True, RESIDENT)
     tw = []
     for pat, val in TIME:
         m, s = _take(s, pat)
         if m:
             tw.append(f"{val}:{m.group(0).strip()}")
+            if tr is not None:
+                tr.hit(m, "TIME", "time_window", tw[-1], pat)
     a.time_window = tuple(tw)
     for pat, val in EXPERIENCE:
         m, _ = _take(s, pat)
         if m:
             a.experience = val
+            if tr is not None:
+                tr.hit(m, "EXPERIENCE", "experience", val, pat, consume=False)
             break
+    if tr is not None:
+        tr.check(s)
     rest = [t for t in s.replace("|", " ").split() if t not in STOP and not t.isdigit() and len(t) > 1]
     for pat, _ in EXPERIENCE:
         rest = [t for t in rest if not re.fullmatch(pat, t)]
