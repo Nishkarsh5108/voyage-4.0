@@ -18,6 +18,9 @@ const BLUE = "2A78D6", DEEP = "1C5CAB", ORANGE = "EB6834", AQUA = "128A5F", VIOL
 const pct = (x, d = 0) => (x * 100).toFixed(d) + "%";
 const num = x => Number(x).toLocaleString("en-US");
 const fair = N.matching.fair_comparison, all = fair["all 12 cities"];
+// CANON_DECK_V2=1 writes Canon_Round1_v2.pptx with the 20 Nov results (held-out tours, Foursquare v2); the default deck is unchanged.
+const V2 = process.env.CANON_DECK_V2 === "1" && N.fsq_v2 && N.sightseeing_heldout && N.sightseeing_heldout.cascade_accuracy != null;
+const TH = N.sightseeing_heldout, F2 = N.fsq_v2;
 const casc = N.matching.cascade_shares, cheap = casc["Key rules"] + casc["Cheap model, confident"];
 
 const pres = new pptxgen();
@@ -167,7 +170,8 @@ pres.addSection({ title: "Evidence" });
   const stats = [
     [`${pct(all.model_recall_at_rule_precision)} vs ${pct(all.rule_recall)}`, "of true hotel and attraction matches found, model vs a name + distance rule at equal precision, on cities never seen in training", "Truth: independent keys, not hand labels", BLUE],
     [`${pct(N.rooms.parser_coverage)} vs ${pct(N.rooms.best_fuzzy_coverage)}`, `of renamed room strings mapped to the right room, parser vs best fuzzy matcher, across ${num(N.rooms.hotels)} real hotels`, "Truth: simulated second supplier", AQUA],
-    [`${pct(N.sightseeing.dedup_merges_variants)}`, `of tour variants a deduplicator would merge away. Typed relations keep them apart: ${pct(N.sightseeing.accuracy)} accuracy over four relation types`, "Truth: simulated second supplier, in-sample", VIOLET],
+    V2 ? [`${pct(TH.cascade_accuracy)} vs ${pct(TH.rules_accuracy)}`, `of tour relations right on phrasings the rules never saw, with an open LLM added vs rules alone. A deduplicator merges ${pct(N.sightseeing.dedup_merges_variants)} of variants away`, "Truth: simulated second supplier, held out", VIOLET]
+       : [`${pct(N.sightseeing.dedup_merges_variants)}`, `of tour variants a deduplicator would merge away. Typed relations keep them apart: ${pct(N.sightseeing.accuracy)} accuracy over four relation types`, "Truth: simulated second supplier, in-sample", VIOLET],
     [`${pct(cheap)}`, `of ${(N.matching.candidate_pairs / 1e6).toFixed(2)} million candidate pairs settled by rules and a small model; the rest go to costlier stages`, "Measured on the 12-city run", ORANGE],
   ];
   const sw = (12.33 - 0.2 * 3) / 4;
@@ -193,7 +197,8 @@ pres.addSection({ title: "Evidence" });
     showLegend: true, legendPos: "b", legendFontSize: 11, legendColor: INK2, legendFontFace: "Calibri", objectName: "Matching chart",
   });
   T(s, [{ text: "Also measured: ", options: { bold: true } },
-        { text: `${(N.fsq_benchmark.records / 1e6).toFixed(2)} million labelled places, cluster score ${N.fsq_benchmark.model_iou.toFixed(2)} vs ${N.fsq_benchmark.best_rule_iou.toFixed(2)} for the best rule. ` +
+        { text: (V2 ? `public benchmark, ${num(F2.records_per_world)} unseen labelled places: IoU ${F2.v2_best_iou.toFixed(2)} vs ${F2.best_rule_iou.toFixed(2)} for the best rule (1st of 1,079 teams: ${F2.published_first_place_cv.with_post_processing.toFixed(2)}, own CV). `
+                     : `${(N.fsq_benchmark.records / 1e6).toFixed(2)} million labelled places, cluster score ${N.fsq_benchmark.model_iou.toFixed(2)} vs ${N.fsq_benchmark.best_rule_iou.toFixed(2)} for the best rule. `) +
                 `Two real Indian OTA feeds: ${num(N.ota_transfer.goibibo_with_twin)} hotels matched across them with no retraining (no labels yet).` }],
     { x: 0.5, y: 6.4, w: 6.4, h: 0.5, fontSize: 11.5, color: INK2 });
 
@@ -242,7 +247,7 @@ pres.addSection({ title: "Close" });
   s.addNotes("Round 2 turns the designed stages into measured ones: ranking on real search logs, a second real supplier for sightseeing, the LLM stage with its cost measured, and the review console. Replace the link line before submitting.");
 }
 
-const out = path.join(R1, "Canon_Round1.pptx");
+const out = path.join(R1, V2 ? "Canon_Round1_v2.pptx" : "Canon_Round1.pptx");
 pres.writeFile({ fileName: out }).then(async () => {
   // pptxgenjs writes folder entries into the zip; some cloud viewers refuse those, so rewrite the package without them
   const JSZip = require("jszip");
