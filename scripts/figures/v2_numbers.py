@@ -28,7 +28,8 @@ def add_v2(numbers: dict) -> dict:
         rB = s1["retrieval"]["B"]
         d = {"truth": "competition labels (research only); places split 50/50, thresholds picked on world A, scores on world B",
              "records_per_world": rB["records"], "candidates_per_record": rB["candidates_per_record"],
-             "retrieval_ceiling_iou": rB["ceiling_cc_iou"], "v1_retrieval_ceiling_iou": rB["v1_ceiling_cc_iou"],
+             "retrieval_ceiling_iou": rB["ceiling_cc_iou"], "retrieval_ceiling_direct_iou": rB["ceiling_list_iou_direct"],
+             "v1_retrieval_ceiling_iou": rB["v1_ceiling_cc_iou"],
              "v1_recipe_iou": s1["v1_recipe"]["list"]["iou_B"], "v2_pair_model_iou": s1["stage1"]["list"]["iou_B"],
              "v2_collective_iou": s1["stage2"]["list"]["iou_B"], "v2_collective_auc": s1["stage2"]["auc_B"],
              "best_rule_iou": max(v["iou_cc_B"] for v in s1["rules"].values()), "published_first_place_cv": FSQ_FIRST_PLACE_CV}

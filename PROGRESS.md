@@ -158,10 +158,15 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
       100 km) + exact name. ~60 pair features, stage-2 XGBoost on collective features (competing candidates, ranks, two-hop support),
       per-record match lists with two-hop completion. Also re-runs the **v1 recipe at the same density** as the before/after baseline.
       Smoke test passed locally (30k places). Kaggle kernel `nishkarshsinghal/canon-fsq-v2-stage1` (T4) pushed ~01:25.
-- [x] `kaggle/fsq_v2_xenc/stage2.py`: cross-encoder (xlm-roberta-base) re-ranks the uncertain band (0.01 <= p <= 0.99), one direction
-      per T4, then blend / stacker chosen on A. Smoke test passed. Push it as kernel `canon-fsq-v2-xenc` once stage 1 has finished
-      (its metadata lists stage 1 as a kernel source).
-- [ ] Collect both kernels' outputs into `kaggle/fsq_v2*/output/`, write `reports/models/fsq_v2.md` (v1 recipe vs v2 vs published).
+      **Result (77 min on one T4, world B = 570,024 records): v1 recipe 0.842 -> v2 stage 1 0.887 -> v2 stage 2 0.897 IoU**
+      (best rule 0.760; pair AUC 0.992; swap check 0.898). Retrieval ceiling 0.983 direct / 0.994 with closure (v1 retrieval: 0.941).
+      Published 1st place CV: 0.875 GBDT stage, 0.911 with transformers, 0.9166 with post-processing. Note: v1's 0.878 on the deck
+      was measured on a 20% world (sparser, easier); the same recipe scores 0.842 at competition density.
+- [x] `kaggle/fsq_v2_xenc/stage2.py`: cross-encoder (xlm-roberta-base) re-ranks the uncertain band (0.01 <= p <= 0.99, ~8% of
+      candidates), one direction per T4, then blend / stacker chosen on A. Kernel `canon-fsq-v2-xenc` pushed 02:47 (~2 h expected).
+- [x] `reports/models/fsq_v2.md` from `scripts/train/report_fsq_v2.py` (stage 1 results in; re-run it after the cross-encoder lands).
+- [ ] When `canon-fsq-v2-xenc` completes: `kaggle kernels output nishkarshsinghal/canon-fsq-v2-xenc -p kaggle/fsq_v2_xenc/output`, then
+      re-run `report_fsq_v2.py` and `v2_numbers.py`, commit `kaggle/fsq_v2_xenc/output/metrics_stage2.json` + report + numbers, push.
 - [x] `scripts/train/city_matcher_stage2.py`: collective second stage for the 12-city matcher, strict nested leave-one-city-out
       (132 nested boosters, ~5 min locally). **Pooled AP 0.976 -> 0.982, recall at 99% precision 61.4% -> 69.8%, precision at 95%
       recall 88.8% -> 92.7%; AP up in 11 of 12 cities.** Dubai's recall at 99% precision drops (50% -> 3%): its top-scored "non-matches"

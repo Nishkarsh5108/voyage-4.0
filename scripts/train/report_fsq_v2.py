@@ -54,7 +54,8 @@ L = ["# Foursquare Location Matching, pipeline v2: retrieval, collective GBDT, c
 for name, iou, auc, _ in rows:
     b = "**" if iou == best else ""
     L.append(f"| {name} | {b}{f4(iou)}{b} | {f4(auc) if auc else '—'} |")
-L += [f"| Retrieval ceiling (every true candidate accepted) | {f4(rB['ceiling_cc_iou'])} | — |",
+L += [f"| Retrieval ceiling, every true candidate accepted, direct links only | {f4(rB['ceiling_list_iou_direct'])} | — |",
+      f"| Retrieval ceiling, same, with transitive closure | {f4(rB['ceiling_cc_iou'])} | — |",
       f"| v1 retrieval ceiling at this density | {f4(rB['v1_ceiling_cc_iou'])} | — |", "",
       "Same thresholds applied the other way round (picked on B, scored on A) as a stability check: stage 2 IoU "
       f"{f4(s1['stage2']['swap']['list']['iou_A'])}.", "",
@@ -62,7 +63,8 @@ L += [f"| Retrieval ceiling (every true candidate accepted) | {f4(rB['ceiling_cc
       "The 2022 competition had 1,079 teams. Leaderboard scores are inflated by a train/test overlap that participants found during the competition (top teams "
       "exploited it), so the comparable figures are the winners' own cross-validation scores on the training data:", "",
       "| | Published 1st place (CV) | This pipeline (world B) |", "|---|---:|---:|",
-      f"| Retrieval max IoU | {FSQ_FIRST_PLACE_CV['retrieval_max_iou']} (about 40 candidates per record) | {f4(rB['ceiling_cc_iou'])} ({rB['candidates_per_record']:.1f} candidate pairs per record) |",
+      f"| Retrieval max IoU | {FSQ_FIRST_PLACE_CV['retrieval_max_iou']} (about 40 candidates per record) | {f4(rB['ceiling_list_iou_direct'])} direct candidates only, "
+      f"{f4(rB['ceiling_cc_iou'])} with transitive closure ({rB['candidates_per_record']:.1f} candidate pairs per record) |",
       f"| GBDT stage | {FSQ_FIRST_PLACE_CV['lightgbm_stage']} (LightGBM, ~120 features) | {f4(s1['stage2']['list']['iou_B'])} (XGBoost, two stages) |",
       f"| Transformer re-ranking | {FSQ_FIRST_PLACE_CV['transformer_ensemble']} (xlm-roberta-large + mdeberta-v3 + CatBoost) | "
       + (f"{f4(s2[s2['chosen_on_A']]['list']['iou_B'])} ({s2['base_model']}, one model)" if s2 else "not run") + " |",
@@ -96,7 +98,9 @@ L += ["", "## What changed from v1, and what it bought", "",
       "- Retrieval is no longer the binding constraint: the fine-tuned encoder and the country-wide search lift the ceiling from "
       f"{f4(rB['v1_ceiling_cc_iou'])} to {f4(rB['ceiling_cc_iou'])}. (Encoder fine-tuning with in-batch negatives is the dense channel of the BER v7 "
       "entity-resolution pipeline built for the Amazon ML Challenge.)",
-      "- The collective stage is the largest single gain after retrieval: a pair is judged together with the record's other candidates.",
+      f"- Increments on world B: retrieval and the richer pair features add {s1['stage1']['list']['iou_B'] - s1['v1_recipe']['list']['iou_B']:+.3f} IoU over the v1 recipe; "
+      f"the collective stage (a pair judged together with each record's other candidates) adds {s1['stage2']['list']['iou_B'] - s1['stage1']['list']['iou_B']:+.3f}"
+      + (f"; the cross-encoder adds {s2[s2['chosen_on_A']]['list']['iou_B'] - s1['stage2']['list']['iou_B']:+.3f}." if s2 else "."),
       f"- Run time: stage 1 {s1['seconds'] / 60:.0f} min on one T4" + (f", stage 2 {s2['seconds'] / 60:.0f} min on two T4s." if s2 else ".")]
 (ROOT / "reports" / "models" / "fsq_v2.md").write_text("\n".join(L) + "\n", encoding="utf-8")
 print("\n".join(L[:40]))

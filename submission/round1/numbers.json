@@ -256,5 +256,25 @@
   "llm_macro_f1": 0.8771034413844259,
   "cascade_accuracy": 0.8722860791826309,
   "cascade_macro_f1": 0.875528801908568
+ },
+ "fsq_v2": {
+  "truth": "competition labels (research only); places split 50/50, thresholds picked on world A, scores on world B",
+  "records_per_world": 570024,
+  "candidates_per_record": 14.876050832947385,
+  "retrieval_ceiling_iou": 0.9941053089858272,
+  "retrieval_ceiling_direct_iou": 0.9826113866530255,
+  "v1_retrieval_ceiling_iou": 0.940736593219365,
+  "v1_recipe_iou": 0.841978274515438,
+  "v2_pair_model_iou": 0.887431676229842,
+  "v2_collective_iou": 0.8970499466357573,
+  "v2_collective_auc": 0.9920836835722825,
+  "best_rule_iou": 0.7598068285136197,
+  "published_first_place_cv": {
+   "lightgbm_stage": 0.875,
+   "transformer_ensemble": 0.911,
+   "with_post_processing": 0.9166,
+   "retrieval_max_iou": 0.979
+  },
+  "v2_best_iou": 0.8970499466357573
  }
 }
