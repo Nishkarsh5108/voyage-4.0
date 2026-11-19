@@ -189,6 +189,10 @@ numbers = {
     "sightseeing": {"truth": "real Klook Singapore products; second supplier simulated; in-sample", "products": acts["products"], "pairs": acts["synthetic_pairs"],
                     "accuracy": acts["accuracy"], "macro_f1": acts["macro_f1"], "dedup_merges_variants": dd["VARIANT_OF"], "dedup_merges_combos": dd["INCLUDES"]},
 }
+sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+from v2_numbers import add_v2  # noqa: E402  (20 Nov upgrades, new keys only)
+
+numbers = add_v2(numbers)
 (ROOT / "submission" / "round1" / "numbers.json").write_text(json.dumps(numbers, indent=1), encoding="utf-8")
 
 # crop of the demo's Match tab (map + evidence panel) for the cover slide; needs scripts/demo/screenshots.ps1 to have run

@@ -189,6 +189,7 @@ res = {m_: {st: [0, 0, 0] for st in STYLES} for m_ in METHODS}  # mapped, correc
 rate_ok, rate_n = 0, 0
 changed = Counter()
 errors = defaultdict(list)
+QUERIES = []  # every renamed string with its hotel and true room, saved for other matchers (rooms_semantic_baseline.py)
 for h, rooms in hotels.items():
     if len(rooms) < 2:
         continue
@@ -196,6 +197,7 @@ for h, rooms in hotels.items():
         for st, fn in STYLES.items():
             q, board, refund = fn(truth)
             changed[st] += int(base_norm(q) != base_norm(truth))
+            QUERIES.append((h, st, q, truth))
             if board is not None and parsed[truth].board is None:
                 pq = parse_room(q)
                 rate_n += 1
@@ -209,6 +211,7 @@ for h, rooms in hotels.items():
                     if got != truth and len(errors[m_]) < 6 and rnd.random() < 0.05:
                         errors[m_].append((q, got, truth))
 
+pd.DataFrame(QUERIES, columns=["hotel", "style", "query", "truth"]).to_parquet(ROOT / "data" / "interim" / "rooms_bench_queries.parquet", index=False)
 summary = {}
 for m_ in METHODS:
     mp = sum(v[0] for v in res[m_].values()); ok = sum(v[1] for v in res[m_].values()); tot = sum(v[2] for v in res[m_].values())

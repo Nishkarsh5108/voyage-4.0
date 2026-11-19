@@ -101,15 +101,19 @@ LABELS = ["SAME_AS", "VARIANT_OF", "INCLUDES", "DIFFERENT"]
 conf = Counter()
 errors = []
 fz_same = Counter()
+dump = []  # every pair with the rules' answer, saved for the model stage (kaggle/activities_llm)
 for x, y, truth, what in pairs:
     r = relate(parse_activity(x, gazetteer=gaz), parse_activity(y, gazetteer=gaz))
     pred = "INCLUDES" if r.relation in ("INCLUDES", "INCLUDED_IN") else r.relation
+    dump.append((x, y, truth, what, pred, r.reason))
     conf[(truth, pred)] += 1
     if pred != truth and len(errors) < 400:
         errors.append((truth, pred, x, y, r.reason))
     # what a binary deduplicator would do with the same pair
     fz_same[(truth, fuzz.token_set_ratio(norm(clean(x)), norm(clean(y))) >= 85)] += 1
 
+pd.DataFrame(dump, columns=["a", "b", "truth", "template", "rules_pred", "rules_reason"]).to_csv(
+    ROOT / "data" / "interim" / "activity_pairs_insample.csv", index=False, encoding="utf-8")
 f1 = {}
 for lab in LABELS:
     tp = conf[(lab, lab)]

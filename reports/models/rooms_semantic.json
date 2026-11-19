@@ -1,0 +1,272 @@
+{
+ "queries": 50310,
+ "hotels": 1484,
+ "dev_hotels": 287,
+ "methods": {
+  "attribute parser (canon.rooms)": {
+   "test": {
+    "coverage": 0.9588827974514743,
+    "precision": 0.9998969842128306,
+    "correct_of_all": 0.9587840173852916
+   }
+  },
+  "intfloat/multilingual-e5-small top-1, no abstention": {
+   "test": {
+    "coverage": 1.0,
+    "precision": 0.9444609077888082,
+    "correct_of_all": 0.9444609077888082
+   }
+  },
+  "intfloat/multilingual-e5-small, abstains (floor 0.85, margin 0.01)": {
+   "test": {
+    "coverage": 0.8145404257420853,
+    "precision": 0.990328644191123,
+    "correct_of_all": 0.8066627154640194
+   },
+   "floor": 0.85,
+   "margin": 0.01,
+   "by_style": {
+    "bedbank abbreviations": {
+     "embedding_abstaining": {
+      "coverage": 0.5248184916283893,
+      "precision": 0.9839073969508753,
+      "correct_of_all": 0.5163727959697733
+     },
+     "parser": {
+      "coverage": 0.9589568825011113,
+      "precision": 0.9996909765142151,
+      "correct_of_all": 0.9586605423025634
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.9979256186101645,
+      "correct_of_all": 0.9979256186101645
+     }
+    },
+    "rate terms appended": {
+     "embedding_abstaining": {
+      "coverage": 0.9377685583049341,
+      "precision": 0.9969979459630274,
+      "correct_of_all": 0.9349533264187287
+     },
+     "parser": {
+      "coverage": 0.9591050526003853,
+      "precision": 1.0,
+      "correct_of_all": 0.9591050526003853
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.9980737887094384,
+      "correct_of_all": 0.9980737887094384
+     }
+    },
+    "comma style": {
+     "embedding_abstaining": {
+      "coverage": 0.9954067269225071,
+      "precision": 1.0,
+      "correct_of_all": 0.9954067269225071
+     },
+     "parser": {
+      "coverage": 0.9583642021040154,
+      "precision": 1.0,
+      "correct_of_all": 0.9583642021040154
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.999703659801452,
+      "correct_of_all": 0.999703659801452
+     }
+    },
+    "case and punctuation noise": {
+     "embedding_abstaining": {
+      "coverage": 0.9786635057045489,
+      "precision": 0.9998485995457986,
+      "correct_of_all": 0.9785153356052748
+     },
+     "parser": {
+      "coverage": 0.9594013927989332,
+      "precision": 1.0,
+      "correct_of_all": 0.9594013927989332
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.999703659801452,
+      "correct_of_all": 0.999703659801452
+     }
+    },
+    "synonyms and bed phrasing": {
+     "embedding_abstaining": {
+      "coverage": 0.9256186101644688,
+      "precision": 0.9750280134464543,
+      "correct_of_all": 0.9025040746777301
+     },
+     "parser": {
+      "coverage": 0.9589568825011113,
+      "precision": 1.0,
+      "correct_of_all": 0.9589568825011113
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.9989628093050822,
+      "correct_of_all": 0.9989628093050822
+     }
+    },
+    "abbreviations + rate codes": {
+     "embedding_abstaining": {
+      "coverage": 0.5249666617276634,
+      "precision": 0.9757267852102738,
+      "correct_of_all": 0.5122240331901022
+     },
+     "parser": {
+      "coverage": 0.9585123722032893,
+      "precision": 0.9996908332045138,
+      "correct_of_all": 0.9582160320047415
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.9962957475181509,
+      "correct_of_all": 0.9962957475181509
+     }
+    }
+   }
+  },
+  "parser, then multilingual-e5-small where it abstains": {
+   "test": {
+    "coverage": 1.0,
+    "precision": 0.9984442139576234,
+    "correct_of_all": 0.9984442139576234
+   },
+   "floor": 0.7,
+   "margin": 0.0
+  },
+  "intfloat/multilingual-e5-base top-1, no abstention": {
+   "test": {
+    "coverage": 1.0,
+    "precision": 0.9292240825801353,
+    "correct_of_all": 0.9292240825801353
+   }
+  },
+  "intfloat/multilingual-e5-base, abstains (floor 0.82, margin 0.01)": {
+   "test": {
+    "coverage": 0.7971798291104855,
+    "precision": 0.9883213035531737,
+    "correct_of_all": 0.7878698078727713
+   },
+   "floor": 0.82,
+   "margin": 0.01,
+   "by_style": {
+    "bedbank abbreviations": {
+     "embedding_abstaining": {
+      "coverage": 0.49488813157504813,
+      "precision": 0.9703592814371258,
+      "correct_of_all": 0.48021929174692546
+     },
+     "parser": {
+      "coverage": 0.9589568825011113,
+      "precision": 0.9996909765142151,
+      "correct_of_all": 0.9586605423025634
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.9967402578159728,
+      "correct_of_all": 0.9967402578159728
+     }
+    },
+    "rate terms appended": {
+     "embedding_abstaining": {
+      "coverage": 0.8925766780263743,
+      "precision": 0.9880478087649402,
+      "correct_of_all": 0.8819084308786487
+     },
+     "parser": {
+      "coverage": 0.9591050526003853,
+      "precision": 1.0,
+      "correct_of_all": 0.9591050526003853
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.995554897021781,
+      "correct_of_all": 0.995554897021781
+     }
+    },
+    "comma style": {
+     "embedding_abstaining": {
+      "coverage": 0.9934805156319455,
+      "precision": 1.0,
+      "correct_of_all": 0.9934805156319455
+     },
+     "parser": {
+      "coverage": 0.9583642021040154,
+      "precision": 1.0,
+      "correct_of_all": 0.9583642021040154
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.999703659801452,
+      "correct_of_all": 0.999703659801452
+     }
+    },
+    "case and punctuation noise": {
+     "embedding_abstaining": {
+      "coverage": 0.9642910060749741,
+      "precision": 0.9996926859250154,
+      "correct_of_all": 0.9639946658764261
+     },
+     "parser": {
+      "coverage": 0.9594013927989332,
+      "precision": 1.0,
+      "correct_of_all": 0.9594013927989332
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.9989628093050822,
+      "correct_of_all": 0.9989628093050822
+     }
+    },
+    "synonyms and bed phrasing": {
+     "embedding_abstaining": {
+      "coverage": 0.9217661875833457,
+      "precision": 0.9800675132615335,
+      "correct_of_all": 0.9033930952733739
+     },
+     "parser": {
+      "coverage": 0.9589568825011113,
+      "precision": 1.0,
+      "correct_of_all": 0.9589568825011113
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.9991109794043562,
+      "correct_of_all": 0.9991109794043562
+     }
+    },
+    "abbreviations + rate codes": {
+     "embedding_abstaining": {
+      "coverage": 0.5160764557712254,
+      "precision": 0.9770312948607522,
+      "correct_of_all": 0.504222847829308
+     },
+     "parser": {
+      "coverage": 0.9585123722032893,
+      "precision": 0.9996908332045138,
+      "correct_of_all": 0.9582160320047415
+     },
+     "cascade": {
+      "coverage": 1.0,
+      "precision": 0.9961475774188768,
+      "correct_of_all": 0.9961475774188768
+     }
+    }
+   }
+  },
+  "parser, then multilingual-e5-base where it abstains": {
+   "test": {
+    "coverage": 1.0,
+    "precision": 0.9977033634612535,
+    "correct_of_all": 0.9977033634612535
+   },
+   "floor": 0.7,
+   "margin": 0.0
+  }
+ }
+}

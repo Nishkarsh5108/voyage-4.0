@@ -171,7 +171,16 @@ def main():
         if mm.sum() > 50 and 0 < y[mm].sum() < mm.sum():
             slices[k] = {"stage1": scores(y[mm], P["p"].to_numpy()[mm]), "stage2": scores(y[mm], oof2[mm])}
     imp = (imp / imp.sum()).sort_values(ascending=False)
+    # where recall at 99% precision fell most, show the labelled "non-matches" stage 2 ranks highest (names from clusters.parquet)
+    worst = min(CITY_ORDER, key=lambda c: per_city[c]["stage2"]["recall@p0.99"] - per_city[c]["stage1"]["recall@p0.99"])
+    Gn = pd.read_parquet(CM / "clusters.parquet", columns=["rid", "source", "name", "qid"]).set_index("rid")
+    m = (city == worst) & (y == 0)
+    top_neg = np.flatnonzero(m)[np.argsort(-oof2[m])[:10]]
+    top_rows = [{"p_stage2": round(float(oof2[k]), 3), "p_stage1": round(float(P["p"].iat[k]), 3), "dist_m": int(P["dist_m"].iat[k]),
+                 "label_src": P["label_src"].iat[k], "a": f"{Gn.at[ra[k], 'source']}: {Gn.at[ra[k], 'name']}",
+                 "b": f"{Gn.at[rb[k], 'source']}: {Gn.at[rb[k], 'name']}"} for k in top_neg]
     res = {"pooled": pooled, "per_city": per_city, "slices": slices, "importance": imp.head(20).round(4).to_dict(),
+           "largest_recall_drop_city": worst, "top_scored_weak_negatives": top_rows,
            "nested_boosters": len(nested), "stage1_rounds": rounds_med, "seconds": time.time() - T0}
     (REP / "city_matcher_stage2.json").write_text(json.dumps(res, indent=1))
     pd.DataFrame({"ra": ra, "rb": rb, "y": y, "p_stage1": P["p"].to_numpy(), "p_stage2_oof": oof2}).to_parquet(CM / "stage2_oof.parquet")
@@ -200,7 +209,15 @@ def main():
     L += ["", "## Hard slices (pooled)", "", "| Slice | Matches | AP stage 1 | AP stage 2 | AUC stage 1 | AUC stage 2 |", "|---|---:|---:|---:|---:|---:|"]
     for k, d in slices.items():
         L.append(f"| {k} | {d['stage1']['pos']:,} | {d['stage1']['ap']:.4f} | {d['stage2']['ap']:.4f} | {d['stage1']['auc']:.4f} | {d['stage2']['auc']:.4f} |")
-    L += ["", "## Feature importance (gain share, summed over the 12 stage-2 models)", "", "| Feature | Share |", "|---|---:|"]
+    L += ["", f"## Why recall at 99% precision fell in {worst}", "",
+          f"The labelled \"non-matches\" of {worst} that stage 2 scores highest. A non-match label here means the two records carry "
+          "different Wikidata items (`qid_conflict`) or different phones and domains. Read the names:", "",
+          "| p stage 2 | p stage 1 | Distance (m) | Label source | Record A | Record B |", "|---:|---:|---:|---|---|---|"]
+    L += [f"| {r['p_stage2']} | {r['p_stage1']} | {r['dist_m']} | {r['label_src']} | {r['a']} | {r['b']} |" for r in top_rows]
+    L += ["", "Most of these are one place under two Wikidata items, often a Latin name in one source and the Arabic name in another. "
+          "Stage 2 ranks them higher because two-hop support links the scripts, and the weak labels then count them as false positives "
+          "at the top of the ranking, which is the one place recall at 99% precision is measured. The human label sheet is what settles it.",
+          "", "## Feature importance (gain share, summed over the 12 stage-2 models)", "", "| Feature | Share |", "|---|---:|"]
     L += [f"| {k} | {v:.1%} |" for k, v in list(imp.head(12).items())]
     L += ["", "## Reading the numbers", "",
           "- The labels are weak (shared Wikidata QID, or rare phone / URL plus proximity), as in the stage-1 report. Both stages are scored "

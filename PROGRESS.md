@@ -157,13 +157,30 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
       encoder fine-tuned (InfoNCE, idea from the Amazon BER v7 pipeline) on the *other* world + country-wide encoder search (top 6 within
       100 km) + exact name. ~60 pair features, stage-2 XGBoost on collective features (competing candidates, ranks, two-hop support),
       per-record match lists with two-hop completion. Also re-runs the **v1 recipe at the same density** as the before/after baseline.
-      Smoke test passed locally (30k places). Kaggle kernel `nishkarshsinghal/canon-fsq-v2-stage1` (T4) pushed 01:45.
+      Smoke test passed locally (30k places). Kaggle kernel `nishkarshsinghal/canon-fsq-v2-stage1` (T4) pushed ~01:25.
 - [x] `kaggle/fsq_v2_xenc/stage2.py`: cross-encoder (xlm-roberta-base) re-ranks the uncertain band (0.01 <= p <= 0.99), one direction
       per T4, then blend / stacker chosen on A. Smoke test passed. Push it as kernel `canon-fsq-v2-xenc` once stage 1 has finished
       (its metadata lists stage 1 as a kernel source).
 - [ ] Collect both kernels' outputs into `kaggle/fsq_v2*/output/`, write `reports/models/fsq_v2.md` (v1 recipe vs v2 vs published).
 - [x] `scripts/train/city_matcher_stage2.py`: collective second stage for the 12-city matcher, strict nested leave-one-city-out
-      (132 nested boosters). Writes `reports/models/city_matcher_stage2.{md,json}`. Running locally.
+      (132 nested boosters, ~5 min locally). **Pooled AP 0.976 -> 0.982, recall at 99% precision 61.4% -> 69.8%, precision at 95%
+      recall 88.8% -> 92.7%; AP up in 11 of 12 cities.** Dubai's recall at 99% precision drops (50% -> 3%): its top-scored "non-matches"
+      are duplicate Wikidata items of one place (Latin vs Arabic names), i.e. label noise; the report lists them. The website still
+      runs stage 1 (wiring stage 2 into the live preset runs would change the landing counts the deck quotes: not done on deadline day).
+- [x] `scripts/train/rooms_semantic_baseline.py` (GPU env): zero-shot multilingual-e5 small/base matchers on the exact 50,310 renamed
+      strings (rooms_benchmark.py now saves them; its own output is byte-identical). Thresholds on 20% of hotels, scores on 80%:
+      parser 95.9% correct at 100% precision; e5-small alone 80.7% at 99.0%; **parser then e5-small 99.8% correct at 99.8% precision**.
+- [x] `scripts/train/activities_heldout.py`: new rewrite templates written after the rules were frozen, run once.
+      **Rules score 74.2% accuracy / macro-F1 0.742 held out vs 96.4% in-sample**; "private tour" and "guided tour" phrasings fail.
+      Rules were not changed after seeing this.
+- [ ] `kaggle/activities_llm/relate_llm.py`: Qwen2.5-7B-Instruct (Apache-2.0), zero-shot + 4 in-sample shots, letter log-probs; cascade
+      policy chosen on the in-sample set, held-out scored once. Kernel `canon-activities-llm` pushed ~01:50 (dataset
+      `nishkarshsinghal/canon-activity-pairs`, written by the two activities scripts).
+- [x] `scripts/figures/v2_numbers.py`: adds `fsq_v2`, `matching_stage2`, `rooms_semantic`, `sightseeing_heldout` to numbers.json
+      (asserts no existing key changes; round1_figures.py calls it too). `scripts/train/report_fsq_v2.py` writes the Foursquare report.
+- [x] Website evidence (`web/static/js/evidence.js`): Foursquare cell switches to v2 vs published 1st place when `fsq_v2` exists;
+      three new cells (stage-2 matcher, tours held out, rooms cascade) appear only when their keys exist; the in-sample caveat now
+      quotes the held-out score.
 - [ ] Add the new numbers under new keys in `submission/round1/numbers.json` (existing keys untouched, so the deck and site still build),
       an evidence line on the website if it holds up, commit, push.
 
