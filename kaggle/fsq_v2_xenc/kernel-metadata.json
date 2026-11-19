@@ -1,0 +1,13 @@
+{
+  "id": "nishkarshsinghal/canon-fsq-v2-xenc",
+  "title": "canon-fsq-v2-xenc",
+  "code_file": "stage2.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": [],
+  "competition_sources": [],
+  "kernel_sources": ["nishkarshsinghal/canon-fsq-v2-stage1"]
+}

@@ -134,6 +134,39 @@ One command, offline, binds 127.0.0.1 only: `.venv\Scripts\python.exe -X utf8 we
 - Known limits: one run computes at a time; upload sources outside the four training sources reach the model as an unknown `src_pair`;
   only Dubai has a bundled basemap (other cities draw on a plain ground).
 
+## Overnight ML upgrade (20 Nov)
+
+User's request (night of 19-20 Nov): audit the models behind the website for placeholders, benchmark them against the state of the art,
+implement stronger models (Kaggle GPU on the user's own account, `nishkarshsinghal`, token in `C:\Users\nishk\.kaggle\kaggle API.txt`),
+keep this file current, commit and **push** to `origin round1-spike` without asking. Commits: user's name only, no trailers.
+A one-shot scheduled task (`voyage-overnight-ml-resume`, 06:15 IST) resumes this list if the session stopped at the usage limit;
+it does nothing if `data/interim/overnight_heartbeat.txt` was touched in the last 40 minutes.
+
+Audit findings (01:30): **no placeholder models.** The website's API loads the real LightGBM pair model (`model.lgb`) and the 12
+leave-one-city-out boosters; simulated parts (offer prices / reliability, the second supplier for rooms and tours) are tagged on the page.
+The weak spots are evidence, not code: city-matcher truth is weak labels, rooms / tours use a simulated second supplier, the tours score is
+in-sample, there is no transformer stage, ranking is blocked (Expedia still returns the rules 403 on the user's account, re-checked 01:50).
+
+State of the art used as the reference: Foursquare Location Matching (Kaggle 2022, 1,079 teams). The 1st-place write-up reports CV IoU
+**0.875** for its LightGBM stage, **0.911** with xlm-roberta-large + mdeberta-v3 + CatBoost, **0.9166** with post-processing; its candidate
+generation (100 geo + 100 multilingual-BERT name neighbours, cut to ~40) has a max IoU of 0.979. Leaderboard scores are inflated by a
+train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, via a repost; the 7th-place write-up reports a 0.9778 retrieval ceiling.)
+
+- [x] `kaggle/fsq_v2/stage1.py`: v2 pipeline. 50/50 place split (each world ~570k records, competition density), cross-fitted A<->B,
+      thresholds picked on A and reported on B. Retrieval: geo pool 100 -> 10 nearest + 10 most name-similar by a multilingual-e5-small
+      encoder fine-tuned (InfoNCE, idea from the Amazon BER v7 pipeline) on the *other* world + country-wide encoder search (top 6 within
+      100 km) + exact name. ~60 pair features, stage-2 XGBoost on collective features (competing candidates, ranks, two-hop support),
+      per-record match lists with two-hop completion. Also re-runs the **v1 recipe at the same density** as the before/after baseline.
+      Smoke test passed locally (30k places). Kaggle kernel `nishkarshsinghal/canon-fsq-v2-stage1` (T4) pushed 01:45.
+- [x] `kaggle/fsq_v2_xenc/stage2.py`: cross-encoder (xlm-roberta-base) re-ranks the uncertain band (0.01 <= p <= 0.99), one direction
+      per T4, then blend / stacker chosen on A. Smoke test passed. Push it as kernel `canon-fsq-v2-xenc` once stage 1 has finished
+      (its metadata lists stage 1 as a kernel source).
+- [ ] Collect both kernels' outputs into `kaggle/fsq_v2*/output/`, write `reports/models/fsq_v2.md` (v1 recipe vs v2 vs published).
+- [x] `scripts/train/city_matcher_stage2.py`: collective second stage for the 12-city matcher, strict nested leave-one-city-out
+      (132 nested boosters). Writes `reports/models/city_matcher_stage2.{md,json}`. Running locally.
+- [ ] Add the new numbers under new keys in `submission/round1/numbers.json` (existing keys untouched, so the deck and site still build),
+      an evidence line on the website if it holds up, commit, push.
+
 ## Next steps
 
 - [ ] User: fill the two deck placeholders, record the video from `VIDEO_SCRIPT.md`, check Unstop's upload format, submit by 20 Nov.
