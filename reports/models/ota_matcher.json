@@ -1,0 +1,26 @@
+{
+ "records": {
+  "makemytrip": 15168,
+  "goibibo": 4000
+ },
+ "candidates": 25723,
+ "bands": {
+  "reject": 20596,
+  "uncertain": 2664,
+  "name-only: review": 1917,
+  "accept": 546
+ },
+ "t_accept": 0.9556353648283596,
+ "t_reject": 0.02,
+ "accepted_pairs": 546,
+ "accepted_one_to_one": 484,
+ "goibibo_with_accepted_twin": 484,
+ "goibibo_with_naive_rule_twin": 562,
+ "accepted_not_found_by_naive_rule": 63,
+ "naive_rule_pairs_not_accepted": 179,
+ "accepted_same_city_share": 0.7747252747252747,
+ "accepted_median_dist_m": 21.282854080200195,
+ "accepted_p90_dist_m": 246.1867218017578,
+ "accepted_name_jw_lt_0.85": 0.08424908424908426,
+ "uncertain_goibibo": 1334
+}
