@@ -58,6 +58,8 @@ function blockingBeat(S, N) {
     for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) order[k++] = i * n + j;
     const r = rng(7); for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); const t = order[i]; order[i] = order[j]; order[j] = t; }
   }
+  const bp = B.params;
+  $("#blkParams").innerHTML = `<b>Geo:</b> the ${bp.k_geo} nearest listings of each other source within ${bp.r_geo / 1000} km. <b>Name:</b> the ${bp.k_name} closest names by character n-grams, cosine ≥ ${bp.min_cos}. Blocking is a standard technique; these parameters are ours.`;
   const deg = new Array(n).fill(0); B.cand.forEach(([a, b]) => { deg[a]++; deg[b]++; });
   const focus = deg.indexOf(Math.max(...deg));
   function geom() {
@@ -217,7 +219,7 @@ function cascadeBeat(S, N) {
     G.cx = clamp(w * 0.3, 150, 300); G.g1 = 60 + (h - 200) * 0.26; G.g2 = 60 + (h - 200) * 0.58; G.bottom = h - 92;
     const x0 = G.cx + HW + 36, x1 = w - 18;
     G.bins = [{ x0, x1, y: G.g1, h: 64, label: "Key rules", sub: "shared or conflicting ID, phone, website" },
-              { x0, x1, y: G.g2, h: 64, label: "Small model, confident", sub: "LightGBM · accept ≥ 0.956 · reject < 0.02" }];
+              { x0, x1, y: G.g2, h: 64, label: "Small model, confident", sub: `LightGBM · accept ≥ ${S.t_accept.toFixed(3)} · reject < ${S.t_reject}` }];
     G.unc = { x0: Math.max(14, G.cx - 120), x1: Math.max(14, G.cx - 120) + 240, y: G.bottom - 6, h: 34 };
   }
   function spawn() { const k = seq++; parts.push({ k, r: route(k), x: G.cx + (((k * 0.37) % 1) - .5) * (HW * 1.6), y: 50, t: 0, ph: 0 }); }

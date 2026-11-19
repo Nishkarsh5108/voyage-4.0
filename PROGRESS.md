@@ -112,6 +112,28 @@ The demo uses no map tile server: tile.openstreetmap.org blocks pages opened as 
 from OSM data bundled in `demo/basemap.js` and Leaflet is vendored in `demo/vendor/`. Do not add a tile layer back.
 Every number in the deck is read from `numbers.json`; rebuild steps are in the package README.
 
+### Phase 5 — public website: BUILT (19 Nov 2026)
+
+One command, offline, binds 127.0.0.1 only: `.venv\Scripts\python.exe -X utf8 web\serve.py` → http://127.0.0.1:8765/
+(`--port` to change it). Rebuild the story data after any model re-run: `.venv\Scripts\python.exe -I -X utf8 web\build_site_data.py`.
+
+- `web/static/`: no build step. Vanilla ES modules, hand-written WebGL2 map (`js/gl.js`), fonts self-hosted (Archivo variable for display,
+  IBM Plex Mono + Plex Sans Arabic / Thai / Devanagari for raw supplier strings). Sections: landing collapse (5,187 → 4,074 from real
+  clusters), the Marina problem, the method story (8 beats), the workbench (ink-dark), evidence, adoption.
+- Every quoted figure is a `data-n` binding into `/numbers.json` (served live from `submission/round1/numbers.json`); an in-browser audit
+  found 24 bindings, 0 mismatches. Simulated parts are hatched and tagged; truth tags on every evidence number.
+- `web/serve.py` + `web/canon_web/`: the API in `web/API.md` around `canon/` (details and checks in `web/canon_web/README.md`).
+  New library pieces: `canon/cascade.py` (key rules, routing, constrained union-find, mirroring city_matcher.py), `canon/_trace.py` and an
+  optional `trace=` on `parse_room` / `parse_activity` (old vs new outputs identical on all real strings and benchmark rewrites).
+- `scripts/train/loco_models.py` rebuilds the 12 leave-one-city-out boosters (into `data/processed/city_matcher/loco/`, ~30 s); they
+  reproduce the stored out-of-city scores exactly, so preset runs score labelled pairs out of city, as the evaluation did.
+- Parity: a live Dubai run reproduces pairs.parquet (42,605 candidates, features and p identical) and 5,187 → 4,074; London reproduces
+  10,169 lodging entities; the OTA preset reproduces ota_matcher.py's bands. The browser worker's union-find matches the server's entity
+  count on Dubai, London and an upload. London end to end takes ~150 s (blocking ~95 s); Dubai ~15 s.
+- Review answers from the workbench go to `data/processed/web_review/answers.csv` (created on first answer); label sheets are never touched.
+- Known limits: one run computes at a time; upload sources outside the four training sources reach the model as an unknown `src_pair`;
+  only Dubai has a bundled basemap (other cities draw on a plain ground).
+
 ## Next steps
 
 - [ ] User: fill the two deck placeholders, record the video from `VIDEO_SCRIPT.md`, check Unstop's upload format, submit by 20 Nov.

@@ -89,7 +89,7 @@
           <h3>Don't compare everything</h3>
           <p>Checking every listing against every other would take <b class="num" data-n="calc.all_pairs"></b> comparisons. Canon compares a listing only with what is near it, or with names that look close anywhere in the city.</p>
           <div class="fact"><span class="v num"><span data-n="matching.candidates_per_record" data-f="dec1"></span></span><span class="w">candidates per listing, keeping <b data-n="matching.blocking_recall" data-f="pct1"></b> of the true pairs</span><span class="tag keys"><i></i>Independent keys</span></div>
-          <p class="note"><b>Geo:</b> the 8 nearest listings of each other source within 1 km. <b>Name:</b> the 3 closest names by character n-grams. Blocking is a standard technique; these parameters are ours.</p>
+          <p class="note" id="blkParams">Blocking is a standard technique; its parameters here are ours.</p>
         </div></article>
 
         <article class="step" data-beat="evidence"><div class="inner">
@@ -104,7 +104,7 @@
           <div class="idx">3.3 · Hotels · Cascade</div>
           <h3>Cheapest tool first</h3>
           <p><b data-n="matching.candidate_pairs" data-f="millions"></b> candidate pairs from <span data-n="data.cities"></span> cities. Key rules settle pairs that share or contradict an identifier. A small model settles the pairs it is sure about. The rest wait for heavier judgement.</p>
-          <div class="fact"><span class="v num"><span data-n="matching.cascade_shares.Key rules" data-f="pct0"></span><small>·</small><span data-n="matching.cascade_shares.Cheap model, confident" data-f="pct0"></span><small>·</small><span class="signal" data-n="matching.cascade_shares.Uncertain: cross-encoder, LLM, human" data-f="pct0"></span></span><span class="w">settled by key rules · by the small model · left uncertain</span><span class="tag count"><i></i>12-city run</span></div>
+          <div class="fact"><span class="v num"><span data-n="matching.cascade_shares.Key rules" data-f="pct0"></span><small>·</small><span data-n="matching.cascade_shares.Cheap model, confident" data-f="pct0"></span><small>·</small><span class="signal" data-n="matching.cascade_shares.Uncertain: cross-encoder, LLM, human" data-f="pct0"></span></span><span class="w">settled by key rules · by the small model · left uncertain</span><span class="tag count"><i></i>Pipeline output</span></div>
           <p class="note"><b>Built:</b> key rules and the LightGBM pair model. <b>Designed, not built yet:</b> the cross-encoder, LLM and human-review stages the uncertain share would go to.</p>
         </div></article>
 
@@ -257,13 +257,13 @@
     </div>
     <div class="ev-lead">
       <div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap"><span class="label ink">Hotels and attractions · 12 cities · each city held out</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><span class="label ink">Hotels and attractions · <span data-n="data.cities"></span> cities · each city held out</span></div>
         <div class="big-pair">
           <div><div class="bv num" data-n="matching.fair_comparison.all 12 cities.model_recall_at_rule_precision" data-f="pct0"></div><div class="bl">pair model</div></div>
           <div><div class="bv rule num" data-n="matching.fair_comparison.all 12 cities.rule_recall" data-f="pct0"></div><div class="bl">name + distance rule</div></div>
         </div>
         <p class="lede" style="font-size:19px">of true matches found on cities the model never saw, at the rule's own precision (<span data-n="matching.fair_comparison.all 12 cities.rule_precision" data-f="pct1"></span>). In Bangkok, where names change script, <b data-n="matching.fair_comparison.bangkok.model_recall_at_rule_precision" data-f="pct0"></b> against <b data-n="matching.fair_comparison.bangkok.rule_recall" data-f="pct0"></b>.</p>
-        <p class="small" style="margin-top:14px">Truth: <span data-n="matching.labelled_matches"></span> matches and <span data-n="matching.labelled_non_matches"></span> non-matches from independent keys: a shared Wikidata ID, or a rare phone or website plus proximity. The model never sees those keys. They are not hand labels; the 400-pair sheet for people to label is ready and unlabelled.</p>
+        <p class="small" style="margin-top:14px">Truth: <span data-n="matching.labelled_matches"></span> matches and <span data-n="matching.labelled_non_matches"></span> non-matches from independent keys: a shared Wikidata ID, or a rare phone or website plus proximity. The model never sees those keys. They are not hand labels; a sheet of pairs for people to label is prepared and not yet labelled.</p>
         <div style="margin-top:14px"><span class="tag keys"><i></i>Independent keys</span></div>
       </div>
       <div><svg class="dumbbell" id="dumbbell" role="img" aria-label="Recall at equal precision by held-out city: model against rule"></svg></div>
@@ -299,7 +299,7 @@
         <div class="label ink" style="margin-bottom:8px">What Round 2 adds</div>
         <ol>
           <li><span><b>Ranking on real search logs</b>, once the Expedia benchmark's rules are accepted: LambdaMART against a position-bias-corrected baseline.</span></li>
-          <li><span><b>Human labels</b> for the 400 prepared hotel pairs, so matching is reported against people, not only keys.</span></li>
+          <li><span><b>Human labels</b> for the prepared sheet of hotel pairs, so matching is reported against people, not only keys.</span></li>
           <li><span><b>The uncertain band:</b> a cross-encoder trained on these pairs, then an LLM, then review.</span></li>
           <li><span><b>A second real tour supplier</b> and a held-out set for typed relations.</span></li>
           <li><span><b>A review console and an API</b> around this workbench.</span></li>

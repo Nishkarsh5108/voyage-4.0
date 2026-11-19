@@ -99,14 +99,16 @@ async function handleFiles(list) {
   const total = files.reduce((a, f) => a + f.size, 0);
   if (total > 40e6) { rep.innerHTML = `<div class="err">These files are ${(total / 1e6).toFixed(1)} MB together; the limit is 40 MB.</div>`; return; }
   rep.innerHTML = `<div class="warn">Reading ${files.length} file${files.length > 1 ? "s" : ""}…</div>`;
-  const payload = { files: await Promise.all(files.map(async f => ({ name: f.name, text: await f.text() }))) };
+  // raw bytes, base64: the server detects the encoding (UTF-8, or a cp1252 fallback it reports as a warning)
+  const toB64 = buf => { const u = new Uint8Array(buf); let s = ""; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+  const payload = { files: await Promise.all(files.map(async f => ({ name: f.name, b64: toB64(await f.arrayBuffer()) }))) };
   let res;
   try { res = await getJSON("/api/uploads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) }); }
   catch (e) { res = e.body && e.body.report ? e.body : null; if (!res) { rep.innerHTML = `<div class="err">${esc(e.message)}</div>`; return; } }
   const R = res.report || {};
   const line = p => `<li class="${p.level === "error" ? "err" : p.level === "warn" ? "warn" : "ok"}">${esc(p.text)}</li>`;
   rep.innerHTML = `<div class="${res.ok ? "ok" : "err"}">${res.ok ? `✓ ${fmt.int(R.records || 0)} usable records from ${(R.sources || []).length} sources` : "✗ Not runnable yet"}</div>
-    ${(R.files || []).map(f => `<div style="margin-top:6px"><b>${esc(f.name)}</b> · ${esc(f.format || "?")} · ${fmt.int(f.usable || 0)} of ${fmt.int(f.rows || 0)} rows usable · source <span class="raw">${esc(f.source || "?")}</span>
+    ${(R.files || []).map(f => `<div style="margin-top:6px"><b>${esc(f.name)}</b> · ${esc(f.format || "?")} · ${fmt.int(f.usable || 0)} of ${fmt.int(f.rows || 0)} rows usable · source ${f.source ? `<span class="raw">${esc(f.source)}</span>` : "from its source column"}
       ${(f.problems || []).length ? `<ul>${f.problems.map(line).join("")}</ul>` : ""}</div>`).join("")}
     ${(R.problems || []).length ? `<ul>${R.problems.map(line).join("")}</ul>` : ""}
     ${(R.missing || []).length ? `<div style="margin-top:6px">Missing optional fields:</div><ul>${R.missing.map(m => `<li class="warn"><b>${esc(m.field)}</b>: ${esc(m.effect)}</li>`).join("")}</ul>` : ""}
@@ -124,6 +126,7 @@ async function startRun(body, label, btn) {
   W.id = r.run_id; W.busy = true;
   const es = new EventSource(`/api/runs/${W.id}/events`); W.es = es;
   const runId = W.id;
+  es.addEventListener("queued", e => { if (W.id === runId) { const d = JSON.parse(e.data); hud(`${esc(W.label)} · queued · ${esc(d.note || "another run is computing")}`); } });
   es.addEventListener("stage", e => { if (W.id === runId) onStage(JSON.parse(e.data)); });
   es.addEventListener("score", e => { if (W.id === runId) onScore(JSON.parse(e.data)); });
   es.addEventListener("done", e => { if (W.id !== runId) return; const d = JSON.parse(e.data); W.busy = false; es.close(); hud(`${esc(W.label)} · done in ${d.seconds.toFixed(1)} s`); loadQueue(); });
@@ -149,7 +152,7 @@ async function arr(name) {
 
 async function onStage(d) {
   const t = d.t != null ? ` · ${d.t.toFixed(1)} s` : "";
-  if (d.status === "start") { W.running = d.stage; renderTimeline(); hud(`${esc(W.label)} · ${d.stage}${d.stage === "score" && d.loco ? ` · labelled pairs: ${d.loco === "used" ? "model without this city" : d.loco}` : ""}${t}`); return; }
+  if (d.status === "start") { W.running = d.stage; renderTimeline(); hud(`${esc(W.label)} · ${d.stage}${d.stage === "block" && W.n > 40000 ? " · a large city: blocking takes a minute or two" : ""}${d.stage === "score" && d.loco ? ` · labelled pairs: ${d.loco === "used" ? "model without this city" : d.loco}` : ""}${t}`); return; }
   W.running = null; W.ready.add(d.stage); W.ev = W.ev || {}; W.ev[d.stage] = d;
   if (d.stage === "ingest") await onIngest(d);
   else if (d.stage === "block") await onBlock(d);
@@ -328,7 +331,7 @@ function gates() {
   } else if (W.P && W.scored) {
     let a = 0, u = 0, r = 0; for (let k = 0; k < W.ne; k++) { const p = W.P[k]; if (p !== p) continue; if (p >= W.t) a++; else if (p >= W.tRej) u++; else r++; }
     rows = [["Gate 0 · key rules", null, "applied after scoring", ""], ["Gate 1 · pair model", a + r, `accept ${fmt.int(a)} · reject ${fmt.int(r)} (provisional)`, ""], ["Uncertain → next stage", u, "provisional, before key rules", "unc"]];
-  } else rows = [["Gate 0 · key rules", null, "Wikidata ID, rare phone or website", ""], ["Gate 1 · pair model", null, "LightGBM on 28 features", ""], ["Uncertain → next stage", null, "", "unc"]];
+  } else rows = [["Gate 0 · key rules", null, "Wikidata ID, rare phone or website", ""], ["Gate 1 · pair model", null, `LightGBM on ${(W.st && W.st.features || []).length} features`, ""], ["Uncertain → next stage", null, "", "unc"]];
   box.innerHTML = rows.map(([nm, v, sub, cls]) => `<div class="gate ${cls}"><span class="gn">${nm}</span><span class="gc num">${v === null ? "—" : fmt.int(v)}</span>
     <span class="gs">${sub}</span><span class="gbar"><i style="width:${v && total ? (v / total * 100).toFixed(2) : 0}%"></i></span></div>`).join("") +
     `<div class="gate notbuilt"><span class="gn">Cross-encoder · LLM · human</span><span class="gc">${tag("notbuilt", "Not built")}</span><span class="gs">the uncertain share would go here; the review queue below is the human step, by hand</span></div>`;

@@ -26,7 +26,7 @@ export function initEvidence(N) {
   ];
   $("#evGrid").innerHTML = cells.map(c => `<div class="ev-cell">${c.tag}<h4>${c.h}</h4><div class="stat num">${c.stat}</div>${c.body ? `<div class="hbar">${c.body}</div>` : ""}<p>${c.p}</p></div>`).join("");
   $("#cannotList").innerHTML = [
-    [tag("nolabel"), "No hotel-matching accuracy against human labels. The 400-pair sheet is prepared and not labelled."],
+    [tag("nolabel"), "No hotel-matching accuracy against human labels. The sheet of pairs for people to label is prepared and not labelled."],
     [tag("keys"), "Matching numbers are against independent keys (Wikidata ID, rare phone or website), at the rule's own precision, on cities held out from training."],
     [tag("sim"), "Room and tour numbers use real catalogues and a simulated second supplier. They measure robustness to renaming, not a live feed."],
     [tag("insample"), "The typed-relation accuracy is in-sample: its rules were tuned on the pairs it is scored on."],
