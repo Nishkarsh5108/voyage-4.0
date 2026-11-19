@@ -245,6 +245,11 @@
   "truth": "same real products; second supplier simulated with templates written after the rules were frozen",
   "pairs": 783,
   "rules_accuracy": 0.7420178799489144,
-  "rules_macro_f1": 0.7423214686281435
+  "rules_macro_f1": 0.7423214686281435,
+  "llm": "Qwen/Qwen2.5-7B-Instruct",
+  "llm_accuracy": 0.8735632183908046,
+  "llm_macro_f1": 0.8771034413844259,
+  "cascade_accuracy": 0.8722860791826309,
+  "cascade_macro_f1": 0.875528801908568
  }
 }

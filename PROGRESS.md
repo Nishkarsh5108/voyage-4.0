@@ -173,9 +173,11 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
 - [x] `scripts/train/activities_heldout.py`: new rewrite templates written after the rules were frozen, run once.
       **Rules score 74.2% accuracy / macro-F1 0.742 held out vs 96.4% in-sample**; "private tour" and "guided tour" phrasings fail.
       Rules were not changed after seeing this.
-- [ ] `kaggle/activities_llm/relate_llm.py`: Qwen2.5-7B-Instruct (Apache-2.0), zero-shot + 4 in-sample shots, letter log-probs; cascade
-      policy chosen on the in-sample set, held-out scored once. Kernel `canon-activities-llm` pushed ~01:50 (dataset
-      `nishkarshsinghal/canon-activity-pairs`, written by the two activities scripts).
+- [x] `kaggle/activities_llm/relate_llm.py`: Qwen2.5-7B-Instruct (Apache-2.0), 4 in-sample shots, letter log-probs (deterministic),
+      kernel `canon-activities-llm` (10 min on T4 x2; dataset `nishkarshsinghal/canon-activity-pairs`). Report by
+      `scripts/train/activities_llm_report.py` -> `reports/models/activities_llm.md`: **held out, rules 74.2%, LLM 87.4%, cascade 87.2%**
+      (cascade policy cross-fitted on product halves of the held-out set; the kernel's own in-sample-chosen cascade, 75.9%, is not used).
+      LLM wins on private / transfer / fast-track / time phrasings, loses on meals (57% vs 81%).
 - [x] `scripts/figures/v2_numbers.py`: adds `fsq_v2`, `matching_stage2`, `rooms_semantic`, `sightseeing_heldout` to numbers.json
       (asserts no existing key changes; round1_figures.py calls it too). `scripts/train/report_fsq_v2.py` writes the Foursquare report.
 - [x] Website evidence (`web/static/js/evidence.js`): Foursquare cell switches to v2 vs published 1st place when `fsq_v2` exists;

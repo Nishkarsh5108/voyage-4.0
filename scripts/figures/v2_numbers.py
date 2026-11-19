@@ -63,12 +63,11 @@ def add_v2(numbers: dict) -> dict:
     if ah:
         d = {"truth": "same real products; second supplier simulated with templates written after the rules were frozen",
              "pairs": ah["pairs"], "rules_accuracy": ah["accuracy"], "rules_macro_f1": ah["macro_f1"]}
-        llm = _read(ROOT / "kaggle" / "activities_llm" / "output" / "metrics_llm.json")
+        llm = _read(REP / "activities_llm.json")  # scripts/train/activities_llm_report.py: cascade policy cross-fitted on held-out halves
         if llm:
             h = llm["heldout"]
             d.update({"llm": llm["model"], "llm_accuracy": h["llm"]["accuracy"], "llm_macro_f1": h["llm"]["macro_f1"],
-                      "cascade_accuracy": h["cascade"]["accuracy"], "cascade_macro_f1": h["cascade"]["macro_f1"],
-                      "cascade_policy": llm["chosen_cascade"]})
+                      "cascade_accuracy": h["cascade_cross_fitted"]["accuracy"], "cascade_macro_f1": h["cascade_cross_fitted"]["macro_f1"]})
         numbers["sightseeing_heldout"] = d
     return numbers
 

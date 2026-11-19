@@ -1,0 +1,139 @@
+{
+ "model": "Qwen/Qwen2.5-7B-Instruct",
+ "pairs_heldout": 783,
+ "products": 87,
+ "folds": {
+  "chosen_on_half_0": {
+   "policy": "llm when confident, else rules",
+   "threshold": 0.5,
+   "dev_macro_f1": 0.8809047068400253
+  },
+  "chosen_on_half_1": {
+   "policy": "llm when confident, else rules",
+   "threshold": 0.8,
+   "dev_macro_f1": 0.8814536381421032
+  }
+ },
+ "heldout": {
+  "rules": {
+   "accuracy": 0.7420178799489144,
+   "macro_f1": 0.7423214686281435,
+   "f1": {
+    "SAME_AS": 0.7259786476868326,
+    "VARIANT_OF": 0.6497695852534563,
+    "INCLUDES": 0.830379746835443,
+    "DIFFERENT": 0.763157894736842
+   }
+  },
+  "llm": {
+   "accuracy": 0.8735632183908046,
+   "macro_f1": 0.8771034413844259,
+   "f1": {
+    "SAME_AS": 0.8441558441558441,
+    "VARIANT_OF": 0.8509803921568627,
+    "INCLUDES": 0.848780487804878,
+    "DIFFERENT": 0.9644970414201184
+   }
+  },
+  "cascade_cross_fitted": {
+   "accuracy": 0.8722860791826309,
+   "macro_f1": 0.875528801908568,
+   "f1": {
+    "SAME_AS": 0.8469055374592834,
+    "VARIANT_OF": 0.8514851485148515,
+    "INCLUDES": 0.8446601941747572,
+    "DIFFERENT": 0.95906432748538
+   }
+  }
+ },
+ "insample": {
+  "rules": {
+   "accuracy": 0.9642401021711366,
+   "macro_f1": 0.9643443411625751,
+   "f1": {
+    "SAME_AS": 0.9507246376811593,
+    "VARIANT_OF": 0.9622641509433963,
+    "INCLUDES": 0.9557522123893805,
+    "DIFFERENT": 0.9886363636363636
+   }
+  },
+  "llm": {
+   "accuracy": 0.8812260536398467,
+   "macro_f1": 0.8847629190017395,
+   "f1": {
+    "SAME_AS": 0.839344262295082,
+    "VARIANT_OF": 0.8494208494208494,
+    "INCLUDES": 0.8678304239401496,
+    "DIFFERENT": 0.9824561403508771
+   }
+  }
+ },
+ "heldout_by_template": {
+  "DIFFERENT/other": {
+   "n": 174,
+   "rules": 1.0,
+   "llm": 0.9367816091954023,
+   "cascade": 0.9425287356321839
+  },
+  "INCLUDES/combo": {
+   "n": 174,
+   "rules": 0.9425287356321839,
+   "llm": 1.0,
+   "cascade": 1.0
+  },
+  "SAME_AS/rename": {
+   "n": 174,
+   "rules": 0.5862068965517241,
+   "llm": 0.7471264367816092,
+   "cascade": 0.7471264367816092
+  },
+  "VARIANT_OF/child": {
+   "n": 39,
+   "rules": 0.7692307692307693,
+   "llm": 0.8717948717948718,
+   "cascade": 0.8974358974358975
+  },
+  "VARIANT_OF/guide": {
+   "n": 33,
+   "rules": 0.06060606060606061,
+   "llm": 0.42424242424242425,
+   "cascade": 0.3939393939393939
+  },
+  "VARIANT_OF/meal": {
+   "n": 21,
+   "rules": 0.8095238095238095,
+   "llm": 0.5714285714285714,
+   "cascade": 0.5238095238095238
+  },
+  "VARIANT_OF/private": {
+   "n": 37,
+   "rules": 0.0,
+   "llm": 0.8918918918918919,
+   "cascade": 0.8918918918918919
+  },
+  "VARIANT_OF/senior": {
+   "n": 38,
+   "rules": 0.8157894736842105,
+   "llm": 0.9210526315789473,
+   "cascade": 0.9210526315789473
+  },
+  "VARIANT_OF/skip_the_line": {
+   "n": 30,
+   "rules": 0.6666666666666666,
+   "llm": 0.9666666666666667,
+   "cascade": 0.9333333333333333
+  },
+  "VARIANT_OF/time": {
+   "n": 30,
+   "rules": 0.7,
+   "llm": 0.9666666666666667,
+   "cascade": 0.9666666666666667
+  },
+  "VARIANT_OF/transfer": {
+   "n": 33,
+   "rules": 0.6060606060606061,
+   "llm": 0.9393939393939394,
+   "cascade": 0.9393939393939394
+  }
+ }
+}
