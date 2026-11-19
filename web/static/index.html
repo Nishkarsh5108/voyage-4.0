@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Canon · one product graph across suppliers</title>
+<meta name="description" content="Suppliers describe the same hotels, rooms and tours differently. Canon works out when they mean the same thing, and when they don't. VoyageHack 4.0, Multi-Supplier Optimization.">
+<link rel="preload" href="fonts/archivo-latin-standard-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/ibm-plex-mono-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/canon.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23efebe1'/%3E%3Crect x='4' y='4' width='8' height='8' fill='%23ff4f00'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <a class="wordmark" href="#top"><i></i>Canon</a>
+  <nav class="topnav" id="topnav" aria-label="Sections">
+    <a href="#landing">01 <span>Collapse</span></a>
+    <a href="#problem">02 <span>Problem</span></a>
+    <a href="#how">03 <span>Method</span></a>
+    <a href="#workbench">04 <span>Workbench</span></a>
+    <a href="#evidence">05 <span>Evidence</span></a>
+    <a href="#adoption">06 <span>Adoption</span></a>
+  </nav>
+</header>
+
+<main id="top">
+
+<!-- ============================================================ 01 LANDING -->
+<section id="landing" aria-label="Dubai lodging listings collapsing into hotels">
+  <div class="stage">
+    <canvas class="map" id="landingMap" aria-hidden="true"></canvas>
+    <canvas class="loupe" id="landingLoupe" aria-hidden="true"></canvas>
+    <div class="neat" id="landingNeat"></div>
+    <div class="hero-copy">
+      <div class="kicker"><span class="label ink">Sheet 01 · Dubai · lodging</span><span class="tag count" title="Counted from the 12-city pipeline run"><i></i>Pipeline output</span></div>
+      <h1 class="h-display">Canon</h1>
+      <p class="lede">Suppliers describe the same hotel in different words, scripts and coordinates. Canon works out which listings are one place, and which only look alike.</p>
+      <div class="actions">
+        <a class="btn solid" href="#workbench">Open the workbench →</a>
+        <a class="btn" href="#how">See how it works ↓</a>
+      </div>
+    </div>
+    <div class="hero-legend" aria-label="Legend">
+      <div class="label ink">Four open sources</div>
+      <div class="legend" id="heroLegend"></div>
+    </div>
+    <div class="hero-count" aria-live="polite">
+      <div class="n num" id="heroCount">—</div>
+      <div class="what" id="heroWhat">listings from <span data-n="data.sources"></span> sources</div>
+    </div>
+    <div class="hero-hint" id="heroHint"><span><b>Hover</b> loupe: raw names underneath</span><span><b>Scroll</b> duplicates find each other</span></div>
+    <div class="loupe-list" id="loupeList"></div>
+  </div>
+</section>
+
+<!-- ============================================================ 02 PROBLEM -->
+<section class="sec" id="problem">
+  <div class="wrap">
+    <div class="intro">
+      <div class="label ink">02 · Problem</div>
+      <h2 class="h-sec">One search.<br>Four feeds.</h2>
+      <p class="lede">Hotels near Dubai Marina, the way four sources deliver them. Hover a card to find its twins. The names and the matches are real; the prices are simulated.</p>
+    </div>
+    <div class="problem-bar">
+      <div class="searchbox"><span class="label">Search</span><span class="q">hotels near Dubai Marina</span></div>
+      <div class="problem-meter" id="problemMeter"></div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <span class="tag sim"><i></i>Prices simulated</span>
+        <div class="seg" role="tablist" id="problemSeg"><button class="on" data-v="raw" role="tab" aria-selected="true">As delivered</button><button data-v="canon" role="tab" aria-selected="false">Canonical</button></div>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </div>
+</section>
+
+<!-- ============================================================ 03 HOW IT WORKS -->
+<section class="sec" id="how">
+  <div class="wrap">
+    <div class="intro">
+      <div class="label ink">03 · Method</div>
+      <h2 class="h-sec">How Canon decides</h2>
+      <p class="lede">Compare only what could be the same. Weigh the evidence. Spend the expensive judgement on the hard cases. Keep every difference a customer pays for.</p>
+    </div>
+    <div class="story" id="story">
+      <div class="steps">
+        <article class="step" data-beat="blocking"><div class="inner">
+          <div class="idx">3.1 · Hotels · Blocking</div>
+          <h3>Don't compare everything</h3>
+          <p>Checking every listing against every other would take <b class="num" data-n="calc.all_pairs"></b> comparisons. Canon compares a listing only with what is near it, or with names that look close anywhere in the city.</p>
+          <div class="fact"><span class="v num"><span data-n="matching.candidates_per_record" data-f="dec1"></span></span><span class="w">candidates per listing, keeping <b data-n="matching.blocking_recall" data-f="pct1"></b> of the true pairs</span><span class="tag keys"><i></i>Independent keys</span></div>
+          <p class="note"><b>Geo:</b> the 8 nearest listings of each other source within 1 km. <b>Name:</b> the 3 closest names by character n-grams. Blocking is a standard technique; these parameters are ours.</p>
+        </div></article>
+
+        <article class="step" data-beat="evidence"><div class="inner">
+          <div class="idx">3.2 · Hotels · Evidence</div>
+          <h3>Weigh the evidence</h3>
+          <p>Atlantis, The Palm, listed by four sources, one of them in Arabic. A gradient-boosted pair model reads distance, name similarity across scripts and alternate names, address, brand and stars.</p>
+          <div class="fact"><span class="v num" id="atlP">—</span><span class="w">model score for the Arabic listing against Overture's: not sure enough to merge on its own</span><span class="tag count"><i></i>Model output</span></div>
+          <p class="note"><b>Not features:</b> phone, website and Wikidata ID. They settle pairs as rules and act as the independent truth the model is tested against. Here a shared Wikidata ID links the Arabic listing.</p>
+        </div></article>
+
+        <article class="step" data-beat="cascade"><div class="inner">
+          <div class="idx">3.3 · Hotels · Cascade</div>
+          <h3>Cheapest tool first</h3>
+          <p><b data-n="matching.candidate_pairs" data-f="millions"></b> candidate pairs from <span data-n="data.cities"></span> cities. Key rules settle pairs that share or contradict an identifier. A small model settles the pairs it is sure about. The rest wait for heavier judgement.</p>
+          <div class="fact"><span class="v num"><span data-n="matching.cascade_shares.Key rules" data-f="pct0"></span><small>·</small><span data-n="matching.cascade_shares.Cheap model, confident" data-f="pct0"></span><small>·</small><span class="signal" data-n="matching.cascade_shares.Uncertain: cross-encoder, LLM, human" data-f="pct0"></span></span><span class="w">settled by key rules · by the small model · left uncertain</span><span class="tag count"><i></i>12-city run</span></div>
+          <p class="note"><b>Built:</b> key rules and the LightGBM pair model. <b>Designed, not built yet:</b> the cross-encoder, LLM and human-review stages the uncertain share would go to.</p>
+        </div></article>
+
+        <article class="step" data-beat="cluster"><div class="inner">
+          <div class="idx">3.4 · Hotels · Clustering</div>
+          <h3>From pairs to places</h3>
+          <p>Accepted pairs join into entities with union-find, strongest evidence first. One constraint holds throughout: two different Wikidata IDs never end up in one entity.</p>
+          <div class="fact"><span class="v num"><span data-n="matching.dubai.lodging_listings"></span><small>→</small><span data-n="matching.dubai.canonical_entities"></span></span><span class="w">Dubai lodging listings to hotels; <b data-n="matching.dubai.multi_source_entities"></b> described by two or more sources</span><span class="tag count"><i></i>Pipeline output</span></div>
+          <p class="note">The rule is strict. Where Wikidata itself holds two items for one hotel, it refuses a true merge as well.</p>
+        </div></article>
+
+        <article class="step" data-beat="rooms"><div class="inner">
+          <div class="idx">3.5 · Rooms · Room and rate</div>
+          <h3>Split the rate from the room</h3>
+          <p>A supplier's room string mixes the room with the rate plan. Canon parses them apart, then matches rooms on room attributes only. Room attributes are ink; rate attributes are orange.</p>
+          <div class="fact"><span class="v num"><span data-n="rooms.parser_coverage" data-f="pct0"></span><small>vs</small><span data-n="rooms.best_fuzzy_coverage" data-f="pct0"></span></span><span class="w">renamed rooms mapped to the right room, against the best fuzzy matcher</span><span class="tag sim"><i></i>Simulated supplier</span></div>
+          <p class="note">Real room lists of <b data-n="rooms.hotels"></b> hotels. The second supplier's strings are rule-based rewrites, so this measures robustness to renaming, not a live feed.</p>
+        </div></article>
+
+        <article class="step" data-beat="tours"><div class="inner">
+          <div class="idx">3.6 · Tours · Typed relations</div>
+          <h3>Same, variant, includes, different</h3>
+          <p>For tours, "duplicate or not" is the wrong question. Canon types each relation and keeps the difference as a chip the agent can see.</p>
+          <div class="fact"><span class="v num"><span data-n="sightseeing.dedup_merges_variants" data-f="pct0"></span><small>·</small><span data-n="sightseeing.dedup_merges_combos" data-f="pct0"></span></span><span class="w">of variants · of combos a plain deduplicator merges into the base product</span><span class="tag sim"><i></i>Simulated supplier</span></div>
+          <p class="note">Real Klook Singapore products; the second supplier is simulated. The typed-relation rules were tuned on the same pairs, so their own accuracy is in-sample.</p>
+        </div></article>
+
+        <article class="step" data-beat="offers"><div class="inner">
+          <div class="idx">3.7 · Offers · Arbitration</div>
+          <h3>Price the risk</h3>
+          <p>Once listings are merged, offers sit side by side. Put a price on a failed booking and the cheapest offer stops being the best one.</p>
+          <div class="fact"><span class="v" style="font-size:22px;letter-spacing:-.01em">Mechanism, not a result</span><span class="tag sim"><i></i>Simulated</span></div>
+          <p class="note">Prices, policies and supplier failure rates in this panel are generated. It shows how the choice works, nothing more.</p>
+        </div></article>
+
+        <article class="step" data-beat="ranking"><div class="inner">
+          <div class="idx">3.8 · Ranking</div>
+          <h3>Ranking: designed, waiting on data</h3>
+          <p>The benchmark it needs is behind a Kaggle rules acceptance. Until it is measured, there is nothing to show, so nothing is shown.</p>
+          <div class="fact"><span class="tag notmeasured"><i></i>Not measured</span></div>
+        </div></article>
+      </div>
+
+      <div class="stage" id="storyStage" aria-live="polite">
+        <div class="beat" data-beat="blocking"><canvas id="cvBlocking"></canvas><div class="stage-cap"><span class="label ink" id="blkCap">Dubai Marina · every pair</span><span class="tiny" id="blkCount"></span></div><div class="overlay" id="blkLegend" style="left:12px;bottom:12px"></div></div>
+        <div class="beat" data-beat="evidence"><div class="stage-cap"><span class="label ink">Atlantis, The Palm · four listings</span><span class="tiny">pairs.parquet · final model</span></div><div id="evidenceBeat" style="position:absolute;inset:40px 0 0"></div></div>
+        <div class="beat" data-beat="cascade"><canvas id="cvCascade"></canvas><div class="stage-cap"><span class="label ink">Who settles each candidate pair</span><span class="tiny" id="cascCap"></span></div></div>
+        <div class="beat" data-beat="cluster"><div class="stage-cap"><span class="label ink">Constrained union-find · Dubai</span><span class="tiny">clusters.parquet</span></div><div id="clusterBeat" style="position:absolute;inset:40px 0 0"></div></div>
+        <div class="beat" data-beat="rooms"><div class="stage-cap"><span class="label ink" id="roomsCap">Room string → room + rate</span><span class="tiny">canon/rooms.py</span></div><div id="roomsBeat" style="position:absolute;inset:40px 0 0"></div></div>
+        <div class="beat" data-beat="tours"><div class="stage-cap"><span class="label ink">Universal Studios Singapore · four real products</span><span class="tiny">canon/activities.py</span></div><div id="toursBeat" style="position:absolute;inset:40px 0 0"></div></div>
+        <div class="beat hatched-frame" data-beat="offers"><div class="stage-cap"><span class="label ink">Offers for one hotel</span><span class="tag sim"><i></i>Simulated</span></div><div id="offersBeat" style="position:absolute;inset:40px 0 0"></div></div>
+        <div class="beat" data-beat="ranking"><div class="stage-cap"><span class="label ink">Ranking</span><span class="tag notmeasured"><i></i>Not measured</span></div><div id="rankingBeat" style="position:absolute;inset:40px 0 0"></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 04 WORKBENCH -->
+<section id="workbench" class="ink-ground" aria-label="Workbench">
+  <div class="wb-shell">
+    <div class="wb-top">
+      <div>
+        <div class="label" style="margin-bottom:12px">04 · Workbench · runs on this machine</div>
+        <h2 class="h-sec">Run the pipeline</h2>
+      </div>
+      <div class="small" id="wbStatus" style="max-width:520px;text-align:right">Checking the local model…</div>
+    </div>
+    <div class="wb-grid">
+      <div class="wb-col">
+        <div class="wb-panel">
+          <h4><span class="label ink">Input · preset</span><span class="tiny" id="presetNote"></span></h4>
+          <div class="presets" id="presets"></div>
+        </div>
+        <div class="wb-panel">
+          <h4><span class="label ink">Input · your feeds</span><a class="tiny" href="samples/two_feeds_sample.csv" download>sample CSV</a></h4>
+          <label class="drop" id="drop"><input type="file" id="fileIn" multiple accept=".csv,.tsv,.txt,.json,.geojson" hidden><b>Drop CSV or JSON feeds</b><br><span class="tiny">name, latitude, longitude, source · optional: address, postcode, brand, stars, alt names, Wikidata ID, phone, website. Files stay on this machine.</span></label>
+          <div class="vreport" id="vreport"></div>
+        </div>
+        <div class="wb-panel" style="flex:1">
+          <h4><span class="label ink">Cascade gates</span><span class="tiny" id="gateTotal"></span></h4>
+          <div class="gates" id="gates"></div>
+        </div>
+      </div>
+      <div class="wb-col" style="border-right:0">
+        <div class="wb-map" id="wbMap">
+          <canvas id="wbCanvas"></canvas>
+          <div class="hud" id="wbHud"></div>
+          <div class="zoom"><button id="zin" aria-label="Zoom in">+</button><button id="zout" aria-label="Zoom out">−</button><button id="zfit" aria-label="Fit">□</button></div>
+          <div class="coords" id="wbCoords"></div>
+          <div class="empty" id="wbEmpty"><div><div class="big">Pick a preset or drop feeds</div><div class="small">Records appear where they are. Candidate pairs draw as faint lines, take their weight as the model scores them, then snap into clusters.</div></div></div>
+        </div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+      <div class="wb-col">
+        <div class="wb-panel">
+          <h4><span class="label ink">Accept threshold</span><span class="mono num" id="thrVal" style="font-size:13px"></span></h4>
+          <div class="thr"><input type="range" id="thr" min="0.5" max="0.999" step="any" value="0.956" disabled aria-label="Accept threshold"></div>
+          <div class="pr-grid" id="prGrid"></div>
+          <div class="tiny" id="prNote" style="margin-top:8px"></div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:12px"><span class="label" style="margin-right:auto">Export canonical output</span><button class="btn sm" id="expCsv">CSV</button><button class="btn sm" id="expJson">JSON</button></div>
+        </div>
+        <div class="wb-panel inspector" id="inspector">
+          <h4><span class="label ink">Inspector</span></h4>
+          <p class="small">Click a canonical point for its member records, or an edge for the pair: both records, the score, and what each feature contributed.</p>
+        </div>
+      </div>
+    </div>
+    <div class="wb-lower">
+      <section>
+        <div class="label ink">Review queue</div>
+        <h3>Pairs the model is unsure about</h3>
+        <p class="small">Your answers are appended to <span class="mono">data/processed/web_review/answers.csv</span> on this machine. The label sheets are never touched.</p>
+        <div class="queue" id="queue"><p class="small">Run a preset or a feed first.</p></div>
+      </section>
+      <section>
+        <div class="label ink">Room bench · canon/rooms.py</div>
+        <h3>One room string, or two lists</h3>
+        <p class="small">Rule-based: every highlight is a lexicon rule firing on a token. Dashed tokens are leftovers the parser could not place.</p>
+        <input class="inp" id="roomIn" value="TWN PARTIAL SV HB NRF" spellcheck="false" aria-label="Room string">
+        <div id="roomOut"></div>
+        <details style="margin-top:14px"><summary class="label" style="cursor:pointer">Map supplier B's list onto supplier A's</summary>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+            <textarea class="inp" id="roomA" rows="7" spellcheck="false" aria-label="Supplier A rooms"></textarea>
+            <textarea class="inp" id="roomB" rows="7" spellcheck="false" aria-label="Supplier B rooms"></textarea>
+          </div>
+          <button class="btn sm" id="roomMap" style="margin-top:8px">Pair rooms by signature</button>
+          <div id="roomMapOut"></div>
+        </details>
+      </section>
+      <section>
+        <div class="label ink">Tour bench · canon/activities.py</div>
+        <h3>Two product titles</h3>
+        <p class="small">The typed relation, the difference chips, and which rule fired on which words.</p>
+        <input class="inp" id="tourA" spellcheck="false" aria-label="Product A" value="[Klook Exclusive] Universal Studios Singapore™ Ticket (1 Day Pass)">
+        <input class="inp" id="tourB" spellcheck="false" aria-label="Product B" style="margin-top:6px" value="[Skip The Line] Universal Studios Singapore™ Express Pass">
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px"><span class="tiny">gazetteer</span><select class="inp" id="tourCity" style="width:auto;padding:4px 8px"></select><button class="btn sm" id="tourGo">Relate</button></div>
+        <div id="tourOut"></div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 05 EVIDENCE -->
+<section class="sec" id="evidence">
+  <div class="wrap">
+    <div class="intro">
+      <div class="label ink">05 · Evidence</div>
+      <h2 class="h-sec">What we can prove, and how</h2>
+      <p class="lede">Each number says what it was measured against. Where the truth is weak or simulated, the tag says so; where nothing has been measured, the page says that instead.</p>
+    </div>
+    <div class="ev-lead">
+      <div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap"><span class="label ink">Hotels and attractions · 12 cities · each city held out</span></div>
+        <div class="big-pair">
+          <div><div class="bv num" data-n="matching.fair_comparison.all 12 cities.model_recall_at_rule_precision" data-f="pct0"></div><div class="bl">pair model</div></div>
+          <div><div class="bv rule num" data-n="matching.fair_comparison.all 12 cities.rule_recall" data-f="pct0"></div><div class="bl">name + distance rule</div></div>
+        </div>
+        <p class="lede" style="font-size:19px">of true matches found on cities the model never saw, at the rule's own precision (<span data-n="matching.fair_comparison.all 12 cities.rule_precision" data-f="pct1"></span>). In Bangkok, where names change script, <b data-n="matching.fair_comparison.bangkok.model_recall_at_rule_precision" data-f="pct0"></b> against <b data-n="matching.fair_comparison.bangkok.rule_recall" data-f="pct0"></b>.</p>
+        <p class="small" style="margin-top:14px">Truth: <span data-n="matching.labelled_matches"></span> matches and <span data-n="matching.labelled_non_matches"></span> non-matches from independent keys: a shared Wikidata ID, or a rare phone or website plus proximity. The model never sees those keys. They are not hand labels; the 400-pair sheet for people to label is ready and unlabelled.</p>
+        <div style="margin-top:14px"><span class="tag keys"><i></i>Independent keys</span></div>
+      </div>
+      <div><svg class="dumbbell" id="dumbbell" role="img" aria-label="Recall at equal precision by held-out city: model against rule"></svg></div>
+    </div>
+    <div class="ev-grid" id="evGrid"></div>
+    <div class="cannot">
+      <div class="label ink">What not to read into it</div>
+      <ul id="cannotList"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ 06 ADOPTION -->
+<section class="sec" id="adoption">
+  <div class="wrap">
+    <div class="intro">
+      <div class="label ink">06 · Adoption</div>
+      <h2 class="h-sec">Built to sit beside what exists</h2>
+      <p class="lede">Canon does not ask anyone to replace their hotel-mapping vendor. It takes that vendor's IDs as one more input and gets better wherever they disagree.</p>
+    </div>
+    <div class="close-grid">
+      <div></div>
+      <div>
+        <div class="label ink" style="margin-bottom:8px">How it fits</div>
+        <ol>
+          <li><span><b>Vendor IDs are an input.</b> An existing mapping is one more key, used as a rule like a Wikidata ID.</span></li>
+          <li><span><b>Disagreements go to review.</b> When the vendor and the model disagree, the pair waits for a person rather than a guess.</span></li>
+          <li><span><b>Thresholds live in configuration.</b> Accept and reject bands are settings, not code, and can differ by market.</span></li>
+          <li><span><b>Every merge is logged.</b> Each entity records which pairs joined it and why, so any merge can be undone.</span></li>
+        </ol>
+      </div>
+      <div>
+        <div class="label ink" style="margin-bottom:8px">What Round 2 adds</div>
+        <ol>
+          <li><span><b>Ranking on real search logs</b>, once the Expedia benchmark's rules are accepted: LambdaMART against a position-bias-corrected baseline.</span></li>
+          <li><span><b>Human labels</b> for the 400 prepared hotel pairs, so matching is reported against people, not only keys.</span></li>
+          <li><span><b>The uncertain band:</b> a cross-encoder trained on these pairs, then an LLM, then review.</span></li>
+          <li><span><b>A second real tour supplier</b> and a held-out set for typed relations.</span></li>
+          <li><span><b>A review console and an API</b> around this workbench.</span></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <span>Canon · VoyageHack 4.0 · Multi-Supplier Optimization</span>
+  <span>Data: Overture Maps, © OpenStreetMap contributors (ODbL), Wikidata (CC0), Wikivoyage (CC BY-SA), Klook, Booking.com reviews, MakeMyTrip and Goibibo samples. Runs offline.</span>
+</footer>
+
+<div class="reveal" id="reveal" role="tooltip"></div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
