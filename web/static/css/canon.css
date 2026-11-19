@@ -495,3 +495,4 @@ footer { padding: 18px var(--gutter) 30px; border-top: 1px solid var(--hair-2); 
   .step { min-height: 70vh; padding-top: 62vh; }
   .step:first-child { padding-top: 62vh; }
 }
+.wb-map #wbLabels { z-index: 1; }

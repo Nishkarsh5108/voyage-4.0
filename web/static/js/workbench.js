@@ -59,7 +59,44 @@ function zoomAt(sx, sy, k) {
 }
 let raf = 0;
 function local(e) { const r = W.map.canvas.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; }
-function draw() { if (raf) return; raf = requestAnimationFrame(() => { raf = 0; if (W.map) { W.map.draw(); coordsHud(); } }); }
+function draw() {
+  if (raf) return;
+  raf = requestAnimationFrame(() => {
+    raf = 0; if (!W.map) return;
+    // marks grow a little as you zoom in, so street level stays readable
+    const z = W.fitScale ? W.map.view.scale / W.fitScale : 1;
+    W.map.u.size = (W.baseSize || 3.4) * clamp(1 + Math.log2(Math.max(z, 1)) * 0.22, 1, 2.3);
+    W.map.draw(); coordsHud(); labels();
+  });
+}
+// Street-level labels: raw names in mono; once clustered, the canonical name of each entity (raw names stay one hover away)
+function labels() {
+  const cv = $("#wbLabels"), m = W.map, dpr = m.dpr;
+  if (cv.width !== m.canvas.width || cv.height !== m.canvas.height) { cv.width = m.canvas.width; cv.height = m.canvas.height; }
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, m.w, m.h);
+  if (!W.n || m.view.scale < 30000 || !W.names) return; // closer than about 370 m per 100 px
+  const snap = (W.shown === "cluster" || W.shown === "canonical") && W.root, seen = new Set(), cand = [];
+  for (let i = 0; i < W.n; i++) {
+    if (!W.has[i]) continue;
+    const r = snap ? W.root[i] : i, multi = snap && W.size[r] > 1;
+    if (multi && seen.has(r)) continue; if (multi) seen.add(r);
+    const [sx, sy] = m.toScreen(multi ? W.cx[r] : W.X[i], multi ? W.cy[r] : W.Y[i]);
+    if (sx < 0 || sy < 0 || sx > m.w || sy > m.h) continue;
+    cand.push([sx, sy, multi ? r : -1, i, (sx - m.w / 2) ** 2 + (sy - m.h / 2) ** 2]);
+  }
+  cand.sort((a, b) => a[4] - b[4]);
+  const boxes = [];
+  for (const [sx, sy, r, i] of cand.slice(0, 260)) {
+    const canon = r >= 0, text = canon ? canonName(membersOf(i)) : W.names[i];
+    ctx.font = canon ? "600 11.5px Archivo, sans-serif" : "500 10.5px 'Plex Mono', 'Plex Arabic', 'Plex Thai', 'Plex Devanagari', monospace";
+    const t = text.length > 34 ? text.slice(0, 33) + "…" : text, w = ctx.measureText(t).width, bx = sx + 7, by = sy - 7;
+    if (boxes.some(b => bx < b[0] + b[2] + 4 && bx + w + 4 > b[0] && by < b[1] + 14 && by + 14 > b[1])) continue;
+    boxes.push([bx, by, w]);
+    ctx.fillStyle = "rgba(18,17,13,.78)"; ctx.fillRect(bx - 2, by - 1, w + 4, 14);
+    ctx.fillStyle = canon ? "#ece7da" : "#a7a193"; ctx.textBaseline = "top"; ctx.fillText(t, bx, by + 1);
+    if (canon) { ctx.fillStyle = "#ff7a3d"; ctx.font = "500 9.5px 'Plex Mono', monospace"; ctx.fillText("×" + W.size[r], bx + w + 6, by + 2); }
+  }
+}
 function coordsHud() {
   if (!W.proj) return;
   const [x, y] = W.map.toData(W.map.w / 2, W.map.h / 2);
@@ -172,8 +209,8 @@ async function onIngest(d) {
   W.X = new Float32Array(n); W.Y = new Float32Array(n); W.has = new Uint8Array(n);
   for (let i = 0; i < n; i++) { const ok = lat[i] === lat[i] && lon[i] === lon[i]; W.has[i] = ok; W.X[i] = ok ? W.proj.x(lon[i]) - W.ox : 0; W.Y[i] = ok ? lat[i] - W.oy : 0; }
   W.shape = new Float32Array(n); for (let i = 0; i < n; i++) W.shape[i] = SHAPE_ID[shapeOf(W.sources[src[i]], src[i])];
-  W.map.u.size = n > 40000 ? 2.4 : n > 12000 ? 2.9 : 3.4;
-  fitView(); show("ingest");
+  W.baseSize = n > 40000 ? 2.4 : n > 12000 ? 2.9 : 3.4;
+  fitView(); W.fitScale = W.map.view.scale; show("ingest");
 }
 async function onBlock(d) {
   const [ra, rb, gen, dist] = await Promise.all([arr("ra"), arr("rb"), arr("gen"), arr("dist")]);
@@ -375,7 +412,14 @@ function nearestPoint(sx, sy, maxPx = 9) {
   }
   return best;
 }
-function membersOf(i) { if (!W.root) return [i]; const r = W.root[i], out = []; for (let j = 0; j < W.n; j++) if (W.root[j] === r) out.push(j); return out; }
+function membersOf(i) {
+  if (!W.root) return [i];
+  if (W._mbFor !== W.root) { // one pass per clustering, then O(1) lookups
+    const m = new Map(); for (let j = 0; j < W.n; j++) { const r = W.root[j]; let a = m.get(r); if (!a) m.set(r, a = []); a.push(j); }
+    W._mb = m; W._mbFor = W.root;
+  }
+  return W._mb.get(W.root[i]) || [i];
+}
 function canonName(ms) {
   const sorted = ms.slice().sort((a, b) => (/[A-Za-z]/.test(W.names[b]) - /[A-Za-z]/.test(W.names[a])) || ((PRIORITY[W.sources[W.src[a]]] ?? 9) - (PRIORITY[W.sources[W.src[b]]] ?? 9)));
   return W.names[sorted[0]];

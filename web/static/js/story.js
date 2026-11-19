@@ -365,8 +365,8 @@ function roomsBeat(S, N) {
 function toursBeat(S, N) {
   const Tr = S.tours, root = $("#toursBeat");
   const L = ["A", "B", "C", "D"];
-  const role = ["ticket", "Express pass", "combo", "VIP tour"];
-  const P = [[170, 190], [520, 190], [170, 46], [170, 334]];
+  const role = ["ticket", "express", "combo", "VIP tour"];
+  const P = [[150, 190], [640, 190], [150, 46], [150, 334]];
   let p = -1;
   // relations as the library returned them, oriented for drawing: INCLUDED_IN(a,b) is drawn as b INCLUDES a
   const rels = Tr.relations.map(r => r.relation === "INCLUDED_IN" ? { ...r, a: r.b, b: r.a, relation: "INCLUDES" } : r);
@@ -377,7 +377,7 @@ function toursBeat(S, N) {
     let s = `<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${col}" stroke-width="${r.relation === "DIFFERENT" ? 2 : 1.6}" stroke-dasharray="${st.dash}" ${r.relation === "DIFFERENT" ? 'stroke-linecap="round"' : ""} opacity="${faint ? .55 : 1}"/>`;
     if (st.arrow) s += `<path d="M${ex - ux * 10 - uy * 6} ${ey - uy * 10 + ux * 6} L${ex} ${ey} L${ex - ux * 10 + uy * 6} ${ey - uy * 10 - ux * 6}" fill="none" stroke="${col}" stroke-width="1.6"/>`;
     if (!faint) {
-      const mx = (sx + ex) / 2, my = (sy + ey) / 2, lab = `${REL[r.relation].label.toUpperCase()}${r.diff.length ? " · " + r.diff.map(d => d.replace(/_/g, " ").replace("->", "→")).join(", ") : ""}`;
+      const mx = (sx + ex) / 2 + (Math.abs(uy) > .8 ? 0 : 0), my = (sy + ey) / 2 + (Math.abs(uy) < .3 ? -16 : 0), lab = `${REL[r.relation].label.toUpperCase()}${r.diff.length ? " · " + r.diff.map(d => d.replace(/_/g, " ").replace("->", "→")).join(", ") : ""}`;
       s += `<rect x="${mx - lab.length * 3.2 - 6}" y="${my - 10}" width="${lab.length * 6.4 + 12}" height="19" fill="#efebe1" stroke="${col}"/><text x="${mx}" y="${my + 4}" text-anchor="middle" font-family="Plex Mono" font-size="10.5" fill="${col}">${esc(lab)}</text>`;
     }
     return s;
@@ -392,7 +392,7 @@ function toursBeat(S, N) {
   function render(v) {
     const dd = v > 0.55;
     const base = rels.filter(r => r.a === 0 || r.b === 0), other = rels.filter(r => r.a !== 0 && r.b !== 0);
-    let svg = `<svg viewBox="0 0 680 384" style="width:100%;height:auto;max-height:58%;flex:none" preserveAspectRatio="xMidYMid meet">`;
+    let svg = `<svg viewBox="0 0 720 384" style="width:100%;height:auto;max-height:58%;flex:none" preserveAspectRatio="xMidYMid meet">`;
     if (!dd) { other.forEach(r => svg += edge(r, true)); base.forEach(r => svg += edge(r, false)); Tr.items.forEach((_, i) => svg += node(i, ...P[i])); }
     else {
       const merged = Tr.dedup.filter(d => d.merged);
