@@ -41,6 +41,16 @@ Say only with the qualifier:
 - Sightseeing, 95% of variants merged by a deduplicator, 96% accuracy for typed relations: "real Klook products, simulated second supplier". The 96% was tuned on the same pairs, so do not call it a benchmark result.
 - Two Indian OTA feeds: 484 hotels matched with no retraining. There are no labels for these yet, so do not quote a precision.
 
+New since 20 Nov (optional; the deck still shows the earlier figures, so use these only if the deck is updated to match):
+
+- Public place-matching benchmark at competition density, 570k records the model never trained on: IoU 0.90, against 0.84 for our first recipe
+  and 0.76 for the best rule. The 1st place of 1,079 teams reported 0.875 for its tree-model stage and 0.917 with large transformers (their own CV).
+  Say "public competition data, research use".
+- The 0.88 on the current deck was measured on a sparser 20% slice. If it stays on the slide, say "on a held-out slice of unseen places".
+- Hotel matching, second stage: average precision 0.976 -> 0.982 on unseen cities, same weak labels; a transformer cross-encoder on top: 0.983.
+- Rooms: parser first, sentence embedding for the rest maps 99.8% of renamed rooms at 99.8% precision (simulated second supplier).
+- Tours on phrasings the rules never saw: rules 74%, an open 7B LLM 87% (simulated second supplier). This replaces the in-sample 96% as the honest figure.
+
 Do not say:
 
 - Any accuracy for hotel matching "against human labels". The 400-pair sheet has not been labelled.
