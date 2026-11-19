@@ -29,11 +29,7 @@ def log(msg: str) -> None:
 
 
 SMOKE = os.environ.get("CANON_SMOKE") == "1"
-WORKER = len(sys.argv) > 1 and sys.argv[1] == "--worker"
-if WORKER:
-    _, _, IN, OUT, BASE, T, S, DEVICE = sys.argv
-    IN, OUT = Path(IN), Path(OUT)
-else:
+if True:
     if len(sys.argv) > 1:
         IN = Path(sys.argv[1])
     else:
@@ -71,7 +67,7 @@ def pair_texts(k: str, P: pd.DataFrame):
 
 
 # ============================================================================ worker: train on world T, score world S
-if WORKER:
+def worker(T, S, DEVICE):
     import torch
     from transformers import AutoModelForSequenceClassification, AutoTokenizer, get_linear_schedule_with_warmup
 
@@ -140,28 +136,42 @@ if WORKER:
     np.save(OUT / f"xenc_logit_{S}.npy", out)
     np.save(OUT / f"xenc_index_{S}.npy", s_index)
     print(f"[{T}->{S}] done in {(time.time() - t0) / 60:.1f} min", flush=True)
-    raise SystemExit(0)
+
+
+def run_jobs(jobs, dev):
+    for T, S in jobs:
+        worker(T, S, dev)
 
 # ============================================================================ main: run both directions, then stack and score
+import multiprocessing as mp  # noqa: E402
+
 import scipy.sparse as sp  # noqa: E402
-import torch  # noqa: E402
 from scipy.sparse.csgraph import connected_components  # noqa: E402
 from sklearn.metrics import average_precision_score, roc_auc_score  # noqa: E402
 
-ngpu = torch.cuda.device_count()
+
+def gpu_count():
+    """Counted with nvidia-smi so the parent never initialises CUDA before forking the workers."""
+    try:
+        return sum(1 for ln in subprocess.run(["nvidia-smi", "-L"], capture_output=True, text=True).stdout.splitlines() if ln.startswith("GPU"))
+    except OSError:
+        return 0
+
+
+ngpu = gpu_count()
 log(f"gpus={ngpu} base={BASE} smoke={SMOKE}")
 jobs = [("A", "B"), ("B", "A")]
-procs = []
-for k, (T, S) in enumerate(jobs):
-    dev = f"cuda:{k % max(ngpu, 1)}" if ngpu else "cpu"
-    cmd = [sys.executable, __file__, "--worker", str(IN), str(OUT), BASE, T, S, dev]
-    if ngpu >= 2:
-        procs.append(subprocess.Popen(cmd))
-    else:
-        subprocess.run(cmd, check=True)
-for p in procs:
-    if p.wait() != 0:
-        raise SystemExit("a worker failed")
+if ngpu >= 2 and os.name != "nt":
+    ctx = mp.get_context("fork")
+    procs = [ctx.Process(target=run_jobs, args=([j], f"cuda:{g}")) for g, j in enumerate(jobs)]
+    for p_ in procs:
+        p_.start()
+    for p_ in procs:
+        p_.join()
+        if p_.exitcode != 0:
+            raise SystemExit("a worker failed")
+else:
+    run_jobs(jobs, "cuda:0" if ngpu else "cpu")
 log("both cross-encoders done")
 
 P = {k: pd.read_parquet(IN / f"pairs_{k}.parquet") for k in ("A", "B")}

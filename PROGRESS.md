@@ -178,6 +178,10 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
       `scripts/train/activities_llm_report.py` -> `reports/models/activities_llm.md`: **held out, rules 74.2%, LLM 87.4%, cascade 87.2%**
       (cascade policy cross-fitted on product halves of the held-out set; the kernel's own in-sample-chosen cascade, 75.9%, is not used).
       LLM wins on private / transfer / fast-track / time phrasings, loses on meals (57% vs 81%).
+- [ ] City matcher stage 3: `scripts/train/city_xenc_data.py` builds dataset `nishkarshsinghal/canon-city-pairs` (labelled pairs,
+      record text without phone / URL / QID); kernel `canon-city-xenc` (`kaggle/city_xenc/city_xenc.py`, pushed 02:00) fine-tunes
+      xlm-roberta-base leave-4-cities-out (3 folds) and stacks it on stage 2; writes `city_matcher_xenc.md` + `metrics_city_xenc.json`.
+      Pull with `kaggle kernels output nishkarshsinghal/canon-city-xenc -p kaggle/city_xenc/output`, copy the md to reports/models.
 - [x] `scripts/figures/v2_numbers.py`: adds `fsq_v2`, `matching_stage2`, `rooms_semantic`, `sightseeing_heldout` to numbers.json
       (asserts no existing key changes; round1_figures.py calls it too). `scripts/train/report_fsq_v2.py` writes the Foursquare report.
 - [x] Website evidence (`web/static/js/evidence.js`): Foursquare cell switches to v2 vs published 1st place when `fsq_v2` exists;

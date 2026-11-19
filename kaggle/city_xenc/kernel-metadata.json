@@ -1,0 +1,13 @@
+{
+  "id": "nishkarshsinghal/canon-city-xenc",
+  "title": "canon-city-xenc",
+  "code_file": "city_xenc.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": "true",
+  "enable_gpu": "true",
+  "enable_internet": "true",
+  "dataset_sources": ["nishkarshsinghal/canon-city-pairs"],
+  "competition_sources": [],
+  "kernel_sources": []
+}
