@@ -194,8 +194,12 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
 - [x] Website evidence (`web/static/js/evidence.js`): Foursquare cell switches to v2 vs published 1st place when `fsq_v2` exists;
       three new cells (stage-2 matcher, tours held out, rooms cascade) appear only when their keys exist; the in-sample caveat now
       quotes the held-out score.
-- [ ] Add the new numbers under new keys in `submission/round1/numbers.json` (existing keys untouched, so the deck and site still build),
-      an evidence line on the website if it holds up, commit, push.
+- [x] New numbers under new keys in `numbers.json`; website evidence shows them (checked in a local preview on port 8766: 9 cells).
+- [x] `reports/models/README.md`: one-page model index (task, model, truth, result, state-of-the-art comparison).
+- [x] `submission/round1/VIDEO_SCRIPT.md`: optional "New since 20 Nov" lines, with what each may be called.
+- [x] Deck variant: `CANON_DECK_V2=1 node scripts/deck/build_round1_deck.js` -> `submission/round1/Canon_Round1_v2.pptx` (tours card shows
+      held-out 87% vs 74%; "Also measured" line shows Foursquare v2). `Canon_Round1.pptx` is unchanged. **User decides which to submit**
+      (the video should match the deck). Rebuild v2 after the Foursquare cross-encoder lands if its IoU rounds differently.
 
 ## Next steps
 
