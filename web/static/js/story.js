@@ -17,7 +17,7 @@ export function initStory(S, N) {
   const stage = $("#storyStage"), steps = $$("#story .step");
   const beats = {
     blocking: blockingBeat(S, N), evidence: evidenceBeat(S, N), cascade: cascadeBeat(S, N), cluster: clusterBeat(S, N),
-    rooms: roomsBeat(S, N), tours: toursBeat(S, N), offers: offersBeat(S, N), ranking: rankingBeat(S, N),
+    rooms: roomsBeat(S, N), tours: toursBeat(S, N), offers: offersBeat(S, N),
   };
   let active = null;
   function activate(name) {
@@ -437,13 +437,4 @@ function offersBeat(S, N) {
   }
   let drawn = false;
   return { enter() { if (!drawn) { render(); drawn = true; } } };
-}
-
-// =====================================================================================================  3.8 ranking
-function rankingBeat() {
-  const root = $("#rankingBeat");
-  root.innerHTML = `<svg viewBox="0 0 400 300" preserveAspectRatio="none" style="position:absolute;inset:24px;width:calc(100% - 48px);height:calc(100% - 48px)"><rect x=".5" y=".5" width="399" height="299" fill="none" stroke="#87827a" stroke-dasharray="3 3" vector-effect="non-scaling-stroke"/><line x1="0" y1="0" x2="400" y2="300" stroke="#dcd6c7" vector-effect="non-scaling-stroke"/><line x1="400" y1="0" x2="0" y2="300" stroke="#dcd6c7" vector-effect="non-scaling-stroke"/></svg>
-    <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--paper);padding:16px 20px;border:1px solid var(--ink);max-width:360px">
-    <div class="label ink">Intentionally empty</div><p class="small" style="margin:8px 0 0;color:var(--ink)">Ranking is designed (LambdaMART against a position-bias-corrected baseline) and not measured. No chart until there is a number.</p></div>`;
-  return {};
 }
