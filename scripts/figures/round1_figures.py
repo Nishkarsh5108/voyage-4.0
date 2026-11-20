@@ -202,4 +202,6 @@ if scr.exists():
     im = Image.open(scr)
     k = im.size[0] / 1600  # screenshots are taken at 1600 px wide times a device scale factor
     im.crop(tuple(int(v * k) for v in (78, 345, 1522, 965))).save(OUT / "demo_match_crop.png")
+    # the evidence panel alone (Atlantis, The Palm: listings and why they were merged), inset on the v3 deck's thank-you slide
+    im.crop(tuple(int(v * k) for v in (1056, 350, 1515, 956))).save(OUT / "demo_match_evidence_crop.png", optimize=True)
 print("figures:", sorted(p.name for p in OUT.glob("*.png")))
