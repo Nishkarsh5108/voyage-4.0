@@ -20,7 +20,7 @@
     <a href="#how">03 <span>Method</span></a>
     <a href="#workbench">04 <span>Workbench</span></a>
     <a href="#evidence">05 <span>Evidence</span></a>
-    <a href="#adoption">06 <span>Adoption</span></a>
+    <a href="#adoption">06 <span>Market</span></a>
   </nav>
 </header>
 
@@ -35,7 +35,7 @@
     <div class="hero-copy">
       <div class="kicker"><span class="label ink">Sheet 01 · Dubai · lodging</span><span class="tag count" title="Counted from the 12-city pipeline run"><i></i>Pipeline output</span></div>
       <h1 class="h-display">Canon</h1>
-      <p class="lede">Suppliers describe the same hotel in different words, scripts and coordinates. Canon works out which listings are one place, and which only look alike.</p>
+      <p class="lede">Suppliers describe the same hotel, room or tour in different words, scripts and coordinates. Canon works out which listings are one thing, and which only look alike: a tour with pickup is not the same tour without it.</p>
       <div class="actions">
         <a class="btn solid" href="#workbench">Open the workbench →</a>
         <a class="btn" href="#how">See how it works ↓</a>
@@ -273,9 +273,29 @@
 <section class="sec" id="adoption">
   <div class="wrap">
     <div class="intro">
-      <div class="label ink">06 · Adoption</div>
-      <h2 class="h-sec">Built to sit beside what exists</h2>
-      <p class="lede">Canon does not ask anyone to replace their hotel-mapping vendor. It takes that vendor's IDs as one more input and gets better wherever they disagree.</p>
+      <div class="label ink">06 · Where Canon fits</div>
+      <h2 class="h-sec">Hotels are mapped. Experiences are not.</h2>
+      <p class="lede">Hotel and room mapping are products TBO already buys. We found no vendor that matches tours and activities across suppliers while keeping their variants apart. That is where Canon leads; for hotels it sits beside the existing vendor.</p>
+    </div>
+    <div class="close-grid" style="border-bottom:1px solid var(--hair);padding-bottom:40px">
+      <div class="label ink">The market</div>
+      <div>
+        <div class="label ink" style="margin-bottom:8px">Already sold, so Canon does not compete</div>
+        <ol>
+          <li><span><b>Hotel mapping.</b> Vervotech (TBO renewed in May 2026), GIATA, Gimmonix, RateHawk. Canon takes their IDs as input.</span></li>
+          <li><span><b>Room mapping.</b> Vervotech, GIATA, Gimmonix, Nuitée Cupid. Canon's addition is splitting the rate plan out before matching.</span></li>
+          <li><span><b>Rebooking on price drops, and tour connectivity</b> (the OCTO standard, channel managers). These link one operator to one reseller at a time.</span></li>
+        </ol>
+      </div>
+      <div>
+        <div class="label ink" style="margin-bottom:8px">Not sold yet, so Canon leads here</div>
+        <ol>
+          <li><span><b>Matching experiences across suppliers.</b> Same, variant, includes or different, at option level: pickup, meal, access, language. A plain deduplicator merges the variants a customer pays for.</span></li>
+          <li><span><b>One operator, several supply paths.</b> The same operator's tour often reaches a reseller through more than one wholesaler, each taking a margin. Matching it once shows one card and the cheaper, more reliable path.</span></li>
+          <li><span><b>Offers an agent can compare.</b> No shared standard exists for cancellation terms or supplier reliability. Canon turns them into one penalty schedule and a failure-adjusted price.</span></li>
+        </ol>
+        <p class="small" style="margin-top:10px">"We found no vendor" is a research finding, not proof; sources and open questions for TBO are in <span class="mono">research/06-market-gap.md</span>.</p>
+      </div>
     </div>
     <div class="close-grid">
       <div></div>
@@ -291,11 +311,11 @@
       <div>
         <div class="label ink" style="margin-bottom:8px">What Round 2 adds</div>
         <ol>
-          <li><span><b>Ranking on real search logs</b>, once the Expedia benchmark's rules are accepted: LambdaMART against a position-bias-corrected baseline.</span></li>
-          <li><span><b>Human labels</b> for the prepared sheet of hotel pairs, so matching is reported against people, not only keys.</span></li>
-          <li><span><b>The uncertain band:</b> a cross-encoder trained on these pairs, then an LLM, then review.</span></li>
-          <li><span><b>A second real tour supplier</b> and a held-out set for typed relations.</span></li>
-          <li><span><b>A review console and an API</b> around this workbench.</span></li>
+          <li><span><b>A real second tour supplier</b> for the same attractions, and hand-labelled product and option pairs, so the experiences results stop relying on a simulated supplier.</span></li>
+          <li><span><b>Operator identity:</b> resolve the operator behind each listing from name, meeting point, schedule and options, and attach every supplier's path to one product.</span></li>
+          <li><span><b>The offer model in code</b>, measured against a cheapest-price baseline, for tours and hotels alike.</span></li>
+          <li><span><b>Human labels</b> for the prepared sheet of hotel pairs, and the uncertain band handed to a cross-encoder, then an LLM, then review.</span></li>
+          <li><span><b>Ranking on real search logs</b>, once the benchmark's rules are accepted.</span></li>
         </ol>
       </div>
     </div>

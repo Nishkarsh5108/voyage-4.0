@@ -592,12 +592,13 @@ pres.addSection({ title: "Close" });
   const s = pres.addSlide({ masterName: "CANON_CLOSE", sectionTitle: "Close" });
   s.addText("Thank you", { placeholder: "title" });
   T1(s, "What Round 2 adds, marked by where each part stands today", { x: 0.6, y: 1.85, w: 7.9, h: 0.35, fontSize: 18, color: C.ink });
+  // Round 2 leads with experiences: hotel and room mapping are products TBO already buys (research/06-market-gap.md)
   const NEXT = [
-    ["designed", "Ranking on real hotel search logs, with position bias corrected"],
+    ["simulated", "Tours matched across a second, real supplier, option by option"],
+    ["designed", "Operator identity: one tour bought through several suppliers, shown once"],
     ["designed", "Offer choice measured against a cheapest-price baseline"],
-    ["simulated", "Rooms and tours against a second, real supplier feed"],
     ["measured", "Hotel matching scored against human labels (the label sheet is ready)"],
-    ["designed", "Review console with audit log; cost per 1,000 records measured"],
+    ["designed", "Ranking on real search logs, with position bias corrected"],
   ];
   hline(s, 0.6, 7.75, 2.38);
   NEXT.forEach(([st, t], i) => {
