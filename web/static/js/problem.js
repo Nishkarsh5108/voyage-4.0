@@ -1,5 +1,5 @@
 // 02 · The problem in one picture. The real "hotels near Dubai Marina" result as four feeds deliver it, then the same offers
-// stacked under nine canonical hotels. Names and matches: real (demo/data.js ← clusters). Prices and policies: simulated.
+// stacked under nine canonical hotels. Names and matches: real (submission/round1/demo/data.js ← clusters). Prices and policies: simulated.
 
 import { $, el, esc, fmt, reduced, mark, labelOf } from "./util.js";
 

@@ -4,7 +4,7 @@ Why: public tile servers refuse a page opened as a local file (tile.openstreetma
 Drawing our own lines from the Geofabrik extract keeps the demo inside every usage policy and makes it work with no internet.
 
 Input : Geofabrik extract for the city (downloaded on demand, removed afterwards)
-Output: demo/basemap.js  (window.BASEMAP = {coast, water, major, primary, minor}; each a list of [[lat, lon], ...] lines)
+Output: submission/round1/demo/basemap.js  (window.BASEMAP = {coast, water, major, primary, minor}; each a list of [[lat, lon], ...] lines)
 Licence: map data © OpenStreetMap contributors, ODbL.
 Usage : python -I scripts/demo/build_basemap.py [--city dubai] [--keep-pbf]
 """
@@ -71,7 +71,7 @@ for cls, lats, lons in rows:
     line = thin(lats, lons, TOL[cls])
     if len(line) >= (4 if cls == "water" else 2):
         base[cls].append(line)
-out = ROOT / "demo" / "basemap.js"
+out = ROOT / "submission" / "round1" / "demo" / "basemap.js"
 out.write_text("window.BASEMAP = " + json.dumps(base, separators=(",", ":")) + ";\n", encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1e3:.0f} kB): " + ", ".join(f"{k} {len(v)} lines / {sum(len(x) for x in v):,} points" for k, v in base.items()))
 if not a.keep_pbf:

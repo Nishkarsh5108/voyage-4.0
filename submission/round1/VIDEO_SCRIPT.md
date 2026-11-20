@@ -1,13 +1,13 @@
 # Round 1 video: script and shot list
 
-About 2 min 50 s, around 400 spoken words. Record the screen while clicking through `demo/index.html`; the narration below is timed to the six tabs.
+About 2 min 50 s, around 400 spoken words. Record the screen while clicking through `submission/round1/demo/index.html`; the narration below is timed to the six tabs.
 Every number spoken here is in `numbers.json` and on slide 3 of the deck (the second content slide; slide 1 is the cover).
 The script matches `Canon_Round1_v3.pptx`: its speaker notes carry the same lines under the same time codes
 (slide 2 covers 0:22 to 2:12, slide 3 covers 2:12 to 2:38, slide 4 closes at 2:38). It also matches the earlier `Canon_Round1.pptx`.
 
 ## Before recording
 
-- Open `demo/index.html` in Chrome or Edge at 1920 × 1080, zoom 100%, bookmarks bar hidden. The page is fully offline: the map is drawn
+- Open `submission/round1/demo/index.html` in Chrome or Edge at 1920 × 1080, zoom 100%, bookmarks bar hidden. The page is fully offline: the map is drawn
   from bundled OpenStreetMap data, so no internet is needed. Use a normal browser window, not an editor's preview pane.
   The stills in `screens/` are the same six tabs, if you would sooner narrate over images.
 - Jump straight to a tab with the address bar: `index.html#mess`, `#match`, `#rooms`, `#acts`, `#offer`, `#proof`.

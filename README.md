@@ -7,13 +7,21 @@ they don't. It matches listings across sources with blocking, a gradient-boosted
 splits rate plans out of room names, and types the relation between tours (same, variant, includes, different) instead
 of merging look-alikes.
 
+**Which folder is what:**
+
+| Folder | What it is | Use it when |
+|---|---|---|
+| `canon/` | The Python library: matching, the cascade, the room/rate parser, tour relations | You want the algorithms; everything else imports this |
+| `web/` | The website: `web/static/` (the pages) and `web/api/` (the local server that runs `canon/`) | You want to see or run Canon. **Start here** |
+| `submission/round1/` | The Round 1 package: deck, video script, `numbers.json`, and `demo/`, the older six-tab validation demo the video is recorded from | You need the submission files |
+
 There are three ways to look at it, from quickest to most complete:
 
 | | What you see | What you need |
 |---|---|---|
 | **1. Public story page** | The explainer: the Dubai collapse, the problem, the method, the evidence | A browser: https://voyage-story-demo.vercel.app |
 | **2. Website, run locally** | The same story, plus the **workbench** that runs the real pipeline live | Python 3.12, and the data and model files (see below) |
-| **3. Validation demo** | The six-tab demo the Round 1 video is recorded from | A browser: open `demo/index.html` |
+| **3. Validation demo** | The six-tab demo the Round 1 video is recorded from | A browser: open `submission/round1/demo/index.html` |
 
 ---
 
@@ -98,8 +106,8 @@ Run times on a laptop: Dubai about 15 s; London, the largest preset, about 2.5 m
 
 ## 3. The validation demo and the Round 1 package
 
-- `demo/index.html` is the six-tab validation demo the video is recorded from. It works offline when opened as a file, because
-  its data, map outline and map library are bundled in `demo/`.
+- `submission/round1/demo/index.html` is the six-tab validation demo the video is recorded from. It works offline when opened as a file, because
+  its data, map outline and map library are bundled next to it.
 - `submission/round1/` holds the deck, the video script and `numbers.json`. Its [README](submission/round1/README.md) explains
   each file and how to rebuild them.
 - `submission/round1/numbers.json` is the single source of every figure quoted in the deck, the demo and the website.
@@ -169,17 +177,16 @@ The website tags every number this way, and reads every figure from `submission/
 ```
 canon/              the library: match.py (blocking, pair features), cascade.py (key rules, routing, clustering),
                     rooms.py (room / rate parser), activities.py (typed relations for tours)
-web/                the website: serve.py (local server + API), canon_web/ (pipeline around canon/),
+web/                the website: serve.py (local server + API), api/ (pipeline around canon/),
                     static/ (the pages), build_site_data.py, API.md
-scripts/            download/, build/, eda/, train/, figures/, demo/, deck/
-demo/               the validation demo (index.html + bundled data)
+scripts/            download/, build/, eda/, train/, figures/, demo/ (builds the Round 1 demo), deck/
 reports/            data-sources.md, eda/, models/
-submission/round1/  deck, video script, figures, numbers.json
+submission/round1/  deck, video script, figures, numbers.json, demo/ (the Round 1 validation demo)
 research/           problem research and architecture notes
 data/               downloaded and generated data (not in git)
 ```
 
-More detail: `PROGRESS.md` (build log and status), `web/canon_web/README.md` (server, API and parity checks), `web/API.md`.
+More detail: `PROGRESS.md` (build log and status), `web/api/README.md` (server, API and parity checks), `web/API.md`.
 
 ## Troubleshooting
 

@@ -38,11 +38,11 @@ scripts/download/   one script per source (re-runnable, skips what exists)
 scripts/build/      build_listings.py (canonical listing table), embed_names.py (multilingual name vectors, GPU, experiment only)
 scripts/eda/        EDA scripts -> reports/eda/<name>.md + .json + figures; common.py holds the chart style
 scripts/train/      city_matcher.py, ota_matcher.py, rooms_benchmark.py, activities_benchmark.py, report_fsq.py
-scripts/demo/       build_demo_data.py (-> demo/data.js), build_basemap.py (-> demo/basemap.js, offline map), screenshots.ps1 (-> submission/round1/screens)
+scripts/demo/       build_demo_data.py (-> submission/round1/demo/data.js), build_basemap.py (-> submission/round1/demo/basemap.js, offline map), screenshots.ps1 (-> submission/round1/screens)
 scripts/figures/    round1_figures.py (-> submission/round1/figures + numbers.json)
 scripts/deck/       build_round1_deck.js (pptxgenjs), render.ps1
 kaggle/             kernel folders pushed with `kaggle kernels push -p kaggle/<name>`
-demo/               index.html + data.js: the validation demo to screen-record
+submission/round1/demo/  index.html + data.js: the Round 1 validation demo to screen-record (moved here from demo/ on 20 Nov)
 reports/            data-sources.md, eda/, models/
 submission/round1/  deck, video script, figures, screens, numbers.json, README
 data/raw|interim|processed   (gitignored)
@@ -92,7 +92,7 @@ Rebuild order from nothing: `scripts/download/*.py` → `scripts/download/wikida
 | B2. Transfer to two real OTA feeds | `scripts/train/ota_matcher.py` | done → `reports/models/ota_matcher.md` | No retraining: 546 accepted pairs, 484 Goibibo hotels with a MakeMyTrip twin. No labels yet |
 | C. Room / rate parser | `canon/rooms.py`, `scripts/train/rooms_benchmark.py` | done → `reports/models/rooms.md` | Simulated second supplier on 1,484 real hotels: **96 % of renamed rooms mapped** vs 60 % for the best fuzzy matcher |
 | D. Sightseeing typed relations | `canon/activities.py`, `scripts/train/activities_benchmark.py` | done, first pass → `reports/models/activities.md` | Simulated second supplier, in-sample: 96 % accuracy over four relations; a deduplicator merges 95 % of variants and 100 % of combos |
-| E. Offer arbitration (RAEP) | demo panel only (`demo/index.html`, tab 5) | simulation, not a result | — |
+| E. Offer arbitration (RAEP) | demo panel only (`submission/round1/demo/index.html`, tab 5) | simulation, not a result | — |
 | F. Ranking | — | **blocked** on Expedia rules | — |
 
 Things to know:
@@ -109,9 +109,9 @@ Things to know:
 ### Phase 4 — Round 1 package: BUILT
 
 `submission/round1/`: `Canon_Round1.pptx` (cover, two content slides, thank-you, speaker notes), `VIDEO_SCRIPT.md`, `figures/`, `screens/`,
-`numbers.json`, `README.md`. Validation demo to screen-record: `demo/index.html` (six tabs; simulated parts are tagged on screen).
+`numbers.json`, `README.md`. Validation demo to screen-record: `submission/round1/demo/index.html` (six tabs; simulated parts are tagged on screen).
 The demo uses no map tile server: tile.openstreetmap.org blocks pages opened as local files and CARTO needs an API key, so the map is drawn
-from OSM data bundled in `demo/basemap.js` and Leaflet is vendored in `demo/vendor/`. Do not add a tile layer back.
+from OSM data bundled in `submission/round1/demo/basemap.js` and Leaflet is vendored in `submission/round1/demo/vendor/`. Do not add a tile layer back.
 Every number in the deck is read from `numbers.json`; rebuild steps are in the package README.
 
 **Deck v3 (20 Nov, morning): `submission/round1/Canon_Round1_v3.pptx`** (+ `.pdf`, renders in `qa_v3/`), from `scripts/deck/build_round1_deck_v3.js`.
@@ -121,7 +121,7 @@ four sources and two scripts, `TWN PARTIAL SV HB NRF` split into room and rate, 
 with the cascade to scale, and "What is new" as four numbered mechanisms. Slide 3 "It already runs on real data. TBO can start it in shadow
 mode.": dumbbell of the 12 held-out cities, a table of everything else with its truth, then impact / feasibility / adoption. Status by form
 (solid / hatched / outline), one legend. It shows the 20 Nov results (Foursquare 0.917 level with 1st place; tours 74% -> 87% on new phrasings
-beside the in-sample 96%). Example details come from `demo/data.js`; the generator asserts they still match what is drawn and that no block runs
+beside the in-sample 96%). Example details come from `submission/round1/demo/data.js`; the generator asserts they still match what is drawn and that no block runs
 off a slide. `render.ps1` now takes `-Deck`, `-Out`, `-Pdf` (run it with `-ExecutionPolicy Bypass`; the machine's policy blocks scripts).
 Speaker notes follow `VIDEO_SCRIPT.md`'s time codes; the script now points at slide 3 for its numbers. `Canon_Round1.pptx` is untouched.
 
@@ -144,7 +144,7 @@ One command, offline, binds 127.0.0.1 only: `.venv\Scripts\python.exe -X utf8 we
   clusters), the Marina problem, the method story (8 beats), the workbench (ink-dark), evidence, adoption.
 - Every quoted figure is a `data-n` binding into `/numbers.json` (served live from `submission/round1/numbers.json`); an in-browser audit
   found 24 bindings, 0 mismatches. Simulated parts are hatched and tagged; truth tags on every evidence number.
-- `web/serve.py` + `web/canon_web/`: the API in `web/API.md` around `canon/` (details and checks in `web/canon_web/README.md`).
+- `web/serve.py` + `web/api/`: the API in `web/API.md` around `canon/` (details and checks in `web/api/README.md`).
   New library pieces: `canon/cascade.py` (key rules, routing, constrained union-find, mirroring city_matcher.py), `canon/_trace.py` and an
   optional `trace=` on `parse_room` / `parse_activity` (old vs new outputs identical on all real strings and benchmark rewrites).
 - `scripts/train/loco_models.py` rebuilds the 12 leave-one-city-out boosters (into `data/processed/city_matcher/loco/`, ~30 s); they

@@ -1,13 +1,13 @@
 """Export the real pipeline outputs the website's story sections draw, into web/static/data/*.json.
 
 Every record, edge, score and feature value here comes from the 12-city run of scripts/train/city_matcher.py
-(data/processed/city_matcher/*) or from the validation demo bundle (demo/data.js, scripts/demo/build_demo_data.py).
+(data/processed/city_matcher/*) or from the validation demo bundle (submission/round1/demo/data.js, scripts/demo/build_demo_data.py).
 Headline numbers are NOT written here: the page reads them from submission/round1/numbers.json at runtime.
 
 What is simulated, and tagged as such on the page: offer prices, policies and supplier reliability (marina / offers).
 
 Input : data/processed/city_matcher/{clusters,pairs}.parquet, model.lgb, featurizer_no_emb.joblib, [loco/model_<city>.lgb],
-        data/interim/listings.parquet, demo/data.js, demo/basemap.js
+        data/interim/listings.parquet, submission/round1/demo/data.js, submission/round1/demo/basemap.js
 Output: web/static/data/landing.json, web/static/data/story.json
 Usage : .venv\\Scripts\\python.exe -I -X utf8 web\\build_site_data.py
 """
@@ -73,7 +73,7 @@ def thin_line(pts, tol_deg):
     return [round(v, 5) for xy in ls.coords for v in xy]
 
 
-bm = (ROOT / "demo" / "basemap.js").read_text(encoding="utf-8")
+bm = (ROOT / "submission" / "round1" / "demo" / "basemap.js").read_text(encoding="utf-8")
 B = json.loads(bm[bm.index("=") + 1:].strip().rstrip(";"))
 w, s, e, n = float(g["lon"].min()) - 0.02, float(g["lat"].min()) - 0.02, float(g["lon"].max()) + 0.02, float(g["lat"].max()) + 0.02
 
@@ -92,13 +92,13 @@ landing = {
     "edges": [[pos[a], pos[b]] for a, b in zip(E["ra"], E["rb"])],
     "edge_route": E["route"].map({"key_match": 0, "model_accept": 1}).tolist(),
     "basemap": basemap,
-    "provenance": "data/processed/city_matcher/clusters.parquet + pairs.parquet (scripts/train/city_matcher.py); basemap: demo/basemap.js, © OpenStreetMap contributors",
+    "provenance": "data/processed/city_matcher/clusters.parquet + pairs.parquet (scripts/train/city_matcher.py); basemap: submission/round1/demo/basemap.js, © OpenStreetMap contributors",
 }
 (OUT / "landing.json").write_text(json.dumps(landing, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 print(f"landing: {len(g)} listings, {len(cent)} entities, {len(E)} edges, basemap " + ", ".join(f"{k} {len(v)}" for k, v in basemap.items()))
 
 # ============================================================================ demo bundle (real names / matches; simulated offers)
-dj = (ROOT / "demo" / "data.js").read_text(encoding="utf-8")
+dj = (ROOT / "submission" / "round1" / "demo" / "data.js").read_text(encoding="utf-8")
 D = json.loads(dj[dj.index("=") + 1:].strip().rstrip(";"))
 marina = {"cards": D["offers"]["cards"], "params": D["offers"]["params"], "suppliers": D["offers"]["suppliers"], "note": D["offers"]["note"]}
 
@@ -231,9 +231,9 @@ hotel = next(h for h in D["rooms"] if h["hotel"].startswith("Hilton Diagonal"))
 rooms = {"hotel": hotel["hotel"], "a": [{"name": x["name"], "bookings": x["bookings"]} for x in hotel["a"]],
          "b": [{"name": x["name"], "true": x["true"], "mapped": x["mapped"]} for x in hotel["b"]], "focus": "TWN PARTIAL SV HB NRF"}
 
-# the literal parse of the focus string, from the same code the workbench's room bench calls (web/canon_web/benches.py)
+# the literal parse of the focus string, from the same code the workbench's room bench calls (web/api/benches.py)
 sys.path.insert(0, str(ROOT / "web"))
-from canon_web.benches import room_view, rooms_map  # noqa: E402
+from api.benches import room_view, rooms_map  # noqa: E402
 
 BOARD = {"BB": "breakfast", "RO": "room only", "HB": "half board", "FB": "full board", "AI": "all inclusive"}
 

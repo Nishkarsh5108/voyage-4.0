@@ -12,7 +12,7 @@ The round asks for a two-slide deck (cover and thank-you slides not counted) and
 | `Canon_Round1.pptx` | The first deck (same content discipline, older look: tinted cards and KPI tiles). Kept until the user picks one. Renders in `qa/` |
 | `Canon_Round1_v2.pptx` | The first deck with the 20 Nov numbers swapped in (`CANON_DECK_V2=1`) |
 | `VIDEO_SCRIPT.md` | Timed shot list and narration for a 2 min 50 s video, tied to the demo's six tabs, plus what may and may not be claimed |
-| `../../demo/index.html` | The validation demo to screen-record. Open it in a normal browser window. It works offline: data, map lines and the map library are all bundled in `demo/` |
+| `demo/index.html` | The validation demo to screen-record. Open it in a normal browser window. It works offline: data, map lines and the map library are all bundled in `demo/` |
 | `screens/*.png` | Stills of every demo tab (3200 × 2000), as a fallback for the video and as extra slide art |
 | `figures/*.png` | Seven slide-ready charts and three demo crops (`demo_match_evidence_crop.png` is the inset on the v3 thank-you slide) |
 | `numbers.json` | Every number the deck, demo and script quote, with the kind of truth behind it |

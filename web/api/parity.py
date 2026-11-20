@@ -7,7 +7,7 @@ data/processed/city_matcher/{pairs.parquet, clusters.parquet} and submission/rou
   - features: every feature column, chunked scoring vs the stored values (and vs one unchunked Featurizer.transform)
   - p: max |live p - stored p| (labelled pairs: leave-one-city-out booster; others: final booster)
   - weak labels, cascade routes, and the lodging entity count / partition after constrained clustering
-Usage : .venv\\Scripts\\python.exe -X utf8 web\\canon_web\\parity.py [dubai london ...]
+Usage : .venv\\Scripts\\python.exe -X utf8 web\\api\\parity.py [dubai london ...]
 Writes: data/processed/web_cache/parity.json
 """
 import json
@@ -20,10 +20,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
-from canon_web import CACHE_DIR, CM, NUMBERS  # noqa: E402
-from canon_web.artefacts import MODELS  # noqa: E402
-from canon_web.pipeline import RUNS  # noqa: E402
-from canon_web.presets import CITY_LABEL, PRESETS  # noqa: E402
+from api import CACHE_DIR, CM, NUMBERS  # noqa: E402
+from api.artefacts import MODELS  # noqa: E402
+from api.pipeline import RUNS  # noqa: E402
+from api.presets import CITY_LABEL, PRESETS  # noqa: E402
 
 
 def canon_labels(x: np.ndarray) -> np.ndarray:

@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from canon_web.handlers import Handler, status_payload, warm_up  # noqa: E402
+from api.handlers import Handler, status_payload, warm_up  # noqa: E402
 
 
 class Server(ThreadingHTTPServer):

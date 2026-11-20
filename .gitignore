@@ -20,5 +20,5 @@ kaggle/*/output/*
 # slide renders used only for visual checks
 submission/round1/qa/
 
-# the website ships its story data (built from data/processed by web/build_site_data.py), like demo/data.js
+# the website ships its story data (built from data/processed by web/build_site_data.py), like submission/round1/demo/data.js
 !web/static/data/

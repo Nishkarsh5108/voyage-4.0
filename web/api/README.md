@@ -63,7 +63,7 @@ candidate index, decision, p, model, route, weak label, both records' source / i
 
 ## Parity checks (run on 19 Nov 2026)
 
-`.venv\Scripts\python.exe -X utf8 web\canon_web\parity.py dubai london` runs the site pipeline and compares it with what training stored
+`.venv\Scripts\python.exe -X utf8 webpi\parity.py dubai london` runs the site pipeline and compares it with what training stored
 (`pairs.parquet`, `clusters.parquet`, `numbers.json`); results go to `data/processed/web_cache/parity.json`.
 
 | Check | Dubai | London |
@@ -91,7 +91,7 @@ Other checks:
 - **OTA preset**: the same 25,723 candidates in the same order as `data/processed/ota_matcher/pairs.parquet`, and the same bands
   (accept 546, uncertain 2,664, held for review without coordinates 1,917, reject 20,596); the float32 `p` array differs from the stored
   float64 p by at most 3e-8 (float32 rounding).
-- **Canonical names**: 692 of the 693 multi-source Dubai lodging clusters in `demo/data.js` have the same members live (the other is the
+- **Canonical names**: 692 of the 693 multi-source Dubai lodging clusters in `submission/round1/demo/data.js` have the same members live (the other is the
   Canopy by Hilton case) and all 692 get the same canonical name.
 - **Pair inspector**: `bias + sum(contrib)` equals `logit(p)` within 4e-14 on the pairs tested.
 - **Parser trace hooks** (`canon/rooms.py`, `canon/activities.py`): the `trace` argument only observes. Old (commit f009fc4) vs new,

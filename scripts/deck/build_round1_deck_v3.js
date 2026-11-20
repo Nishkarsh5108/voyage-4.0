@@ -1,7 +1,7 @@
 /* Round 1 deck, v3 design: cover + two content slides + thank-you (the rules allow two content slides).
  *
  * Content discipline as in build_round1_deck.js: every number is read from submission/round1/numbers.json, and every example
- * detail (pin distances, name similarity, the room string, the tour relations) from demo/data.js, so nothing is typed by hand.
+ * detail (pin distances, name similarity, the room string, the tour relations) from submission/round1/demo/data.js, so nothing is typed by hand.
  * Look: paper-white, near-black ink, one signal orange. Franklin Gothic (ships with Office on Windows and Mac) for headings and
  * canonical values, Consolas for raw supplier strings, Arial for the Arabic name. Status is shown by form, never by colour:
  * solid = measured on real data, hatched = tested with a simulated second supplier, outline = designed, not yet measured.
@@ -24,7 +24,7 @@ const ROOT = path.resolve(__dirname, "..", "..");
 const R1 = path.join(ROOT, "submission", "round1");
 const OUT = path.join(R1, process.env.CANON_OUT || "Canon_Round1_v3.pptx");
 const N = JSON.parse(fs.readFileSync(path.join(R1, "numbers.json"), "utf8"));
-const demoSrc = fs.readFileSync(path.join(ROOT, "demo", "data.js"), "utf8");
+const demoSrc = fs.readFileSync(path.join(ROOT, "submission", "round1", "demo", "data.js"), "utf8");
 const D = JSON.parse(demoSrc.slice(demoSrc.indexOf("=") + 1).trim().replace(/;\s*$/, ""));
 const TEAM = process.env.CANON_TEAM || "Team Hent-AI  ·  Nishkarsh Singhal, Hirak Biswas";
 const LINK = process.env.CANON_LINK || "github.com/Nishkarsh5108/voyage-4.0";
@@ -46,7 +46,7 @@ const LLM_SIZE = (/(\d+(\.\d+)?B)\b/.exec(TH.llm) || [])[1]; // "Qwen/Qwen2.5-7B
 must(LLM_SIZE, "LLM size in the model name");
 must(Math.abs(shareRules + shareModel + shareOn - 1) < 1e-9, "cascade shares sum to 1");
 
-// Example 1: Atlantis, The Palm in four sources (demo/data.js, real Dubai clusters)
+// Example 1: Atlantis, The Palm in four sources (submission/round1/demo/data.js, real Dubai clusters)
 const atl = D.matching.clusters.find(c => /^Atlantis, the Palm$/i.test(c.name));
 must(atl && atl.members.length === 4, "Atlantis cluster with four members");
 const SRCNAME = { overture: "Overture", wikidata: "Wikidata", wikivoyage: "Wikivoyage", osm: "OpenStreetMap" };
