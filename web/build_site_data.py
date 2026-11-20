@@ -278,3 +278,9 @@ story = {"rooms_trace": rooms_trace, "marina": marina, "blocking": blocking, "at
 (OUT / "story.json").write_text(json.dumps(story, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 for f in ("landing.json", "story.json"):
     print(f, f"{(OUT / f).stat().st_size / 1e3:.0f} kB")
+
+# static hosting (e.g. Vercel) has no /numbers.json route: ship an exact copy next to the page. The local server
+# still serves the live file, which takes precedence; re-run this script whenever numbers.json changes.
+import shutil  # noqa: E402
+shutil.copyfile(ROOT / "submission" / "round1" / "numbers.json", ROOT / "web" / "static" / "numbers.json")
+print("copied numbers.json into web/static for static hosting")

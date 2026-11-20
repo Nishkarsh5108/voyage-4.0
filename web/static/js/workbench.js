@@ -17,8 +17,16 @@ export async function initWorkbench(N) {
   let st;
   try { st = await getJSON("/api/status"); }
   catch (e) {
-    status.innerHTML = `<span class="signal">The local API is not running.</span> Start the site with <span class="mono">.venv\\Scripts\\python.exe -X utf8 web\\serve.py</span> to use the workbench.`;
-    $("#presets").innerHTML = ""; return;
+    // static deployment (or the server is not running): say so plainly instead of showing a dead instrument
+    const local = ["127.0.0.1", "localhost"].includes(location.hostname);
+    status.innerHTML = local
+      ? `<span class="signal">The local API is not running.</span> Start the site with <span class="mono">.venv\\Scripts\\python.exe -X utf8 web\\serve.py</span> to use the workbench.`
+      : `<span class="signal">This public page shows the story only.</span> The workbench runs the real pipeline (LightGBM model, about 1 GB of data) on a local machine, so it is not live here.`;
+    $("#presets").innerHTML = `<p class="small" style="padding:10px">Presets run on the local server.</p>`;
+    $("#wbEmpty").innerHTML = `<div><div class="big">The workbench runs locally</div><div class="small">It runs canon/ with the trained model on this machine's data: records appear, candidate pairs are scored and routed, clusters form. Start it with <span class="mono">.venv\\Scripts\\python.exe -X utf8 web\\serve.py</span> from the repository.</div></div>`;
+    for (const id of ["#roomOut", "#tourOut", "#queue"]) $(id).innerHTML = `<p class="small">Needs the local server.</p>`;
+    for (const id of ["#roomIn", "#tourA", "#tourB", "#tourGo", "#roomMap", "#fileIn"]) $(id).disabled = true;
+    return;
   }
   W.st = st; W.tAcc = st.t_accept; W.tRej = st.t_reject; W.t = st.t_accept;
   status.innerHTML = st.model && st.model.ready

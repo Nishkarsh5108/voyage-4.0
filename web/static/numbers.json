@@ -1,0 +1,282 @@
+{
+ "data": {
+  "cities": 12,
+  "sources": 4,
+  "lodging_listings": 99691,
+  "attraction_listings": 228165,
+  "listings_total": 327856,
+  "key_linked_pairs": 34482,
+  "largest_hub_phone_listings": 1589
+ },
+ "matching": {
+  "truth": "weak labels from independent keys (Wikidata QID, rare phone / URL); not hand-labelled",
+  "records": 327053,
+  "candidate_pairs": 1230318,
+  "labelled_matches": 24694,
+  "labelled_non_matches": 133534,
+  "auc_unseen_city": 0.994396741046379,
+  "recall_at_99_precision": 0.6136308414999595,
+  "blocking_recall": 0.995195830958391,
+  "candidates_per_record": 3.7618306513011652,
+  "fair_comparison": {
+   "dubai": {
+    "matches": 733,
+    "non_matches": 3311,
+    "rule_precision": 0.9746300211416491,
+    "rule_recall": 0.6289222373806276,
+    "model_recall_at_rule_precision": 0.6903137789904502,
+    "model_precision_at_rule_recall": 0.9793388429752066,
+    "model_errors_at_rule_recall": 0.02066115702479343,
+    "rule_errors": 0.025369978858350906
+   },
+   "bangkok": {
+    "matches": 1761,
+    "non_matches": 4816,
+    "rule_precision": 0.9571428571428572,
+    "rule_recall": 0.2663259511641113,
+    "model_recall_at_rule_precision": 0.9108461101646792,
+    "model_precision_at_rule_recall": 0.9934383202099738,
+    "model_errors_at_rule_recall": 0.006561679790026198,
+    "rule_errors": 0.042857142857142816
+   },
+   "singapore": {
+    "matches": 1307,
+    "non_matches": 4539,
+    "rule_precision": 0.9592050209205021,
+    "rule_recall": 0.7016067329762815,
+    "model_recall_at_rule_precision": 0.8768171384850804,
+    "model_precision_at_rule_recall": 0.9968152866242038,
+    "model_errors_at_rule_recall": 0.0031847133757961776,
+    "rule_errors": 0.04079497907949792
+   },
+   "delhi": {
+    "matches": 477,
+    "non_matches": 2239,
+    "rule_precision": 0.9259259259259259,
+    "rule_recall": 0.6813417190775681,
+    "model_recall_at_rule_precision": 0.8742138364779874,
+    "model_precision_at_rule_recall": 0.9589442815249267,
+    "model_errors_at_rule_recall": 0.04105571847507328,
+    "rule_errors": 0.07407407407407407
+   },
+   "mumbai": {
+    "matches": 348,
+    "non_matches": 1494,
+    "rule_precision": 0.97265625,
+    "rule_recall": 0.7155172413793104,
+    "model_recall_at_rule_precision": 0.764367816091954,
+    "model_precision_at_rule_recall": 0.980544747081712,
+    "model_errors_at_rule_recall": 0.01945525291828798,
+    "rule_errors": 0.02734375
+   },
+   "goa": {
+    "matches": 312,
+    "non_matches": 983,
+    "rule_precision": 0.9842105263157894,
+    "rule_recall": 0.5993589743589743,
+    "model_recall_at_rule_precision": 0.7243589743589743,
+    "model_precision_at_rule_recall": 0.9947643979057592,
+    "model_errors_at_rule_recall": 0.005235602094240788,
+    "rule_errors": 0.015789473684210575
+   },
+   "london": {
+    "matches": 7475,
+    "non_matches": 40962,
+    "rule_precision": 0.9440015555123469,
+    "rule_recall": 0.6494983277591974,
+    "model_recall_at_rule_precision": 0.916923076923077,
+    "model_precision_at_rule_recall": 0.9916513948279373,
+    "model_errors_at_rule_recall": 0.008348605172062706,
+    "rule_errors": 0.05599844448765312
+   },
+   "paris": {
+    "matches": 4831,
+    "non_matches": 32486,
+    "rule_precision": 0.9665738161559888,
+    "rule_recall": 0.5746222314220658,
+    "model_recall_at_rule_precision": 0.8830469882012005,
+    "model_precision_at_rule_recall": 0.9949856733524355,
+    "model_errors_at_rule_recall": 0.005014326647564515,
+    "rule_errors": 0.03342618384401119
+   },
+   "amsterdam": {
+    "matches": 1592,
+    "non_matches": 7114,
+    "rule_precision": 0.9569049951028403,
+    "rule_recall": 0.6136934673366834,
+    "model_recall_at_rule_precision": 0.9076633165829145,
+    "model_precision_at_rule_recall": 0.9962928637627433,
+    "model_errors_at_rule_recall": 0.003707136237256714,
+    "rule_errors": 0.04309500489715967
+   },
+   "barcelona": {
+    "matches": 1561,
+    "non_matches": 12477,
+    "rule_precision": 0.9575328614762386,
+    "rule_recall": 0.6066623959000641,
+    "model_recall_at_rule_precision": 0.7399103139013453,
+    "model_precision_at_rule_recall": 0.9845360824742269,
+    "model_errors_at_rule_recall": 0.015463917525773141,
+    "rule_errors": 0.04246713852376138
+   },
+   "vienna": {
+    "matches": 2564,
+    "non_matches": 13862,
+    "rule_precision": 0.9427374301675978,
+    "rule_recall": 0.5265210608424337,
+    "model_recall_at_rule_precision": 0.8537441497659907,
+    "model_precision_at_rule_recall": 0.9891461649782923,
+    "model_errors_at_rule_recall": 0.01085383502170767,
+    "rule_errors": 0.05726256983240219
+   },
+   "milan": {
+    "matches": 1733,
+    "non_matches": 9251,
+    "rule_precision": 0.9507494646680942,
+    "rule_recall": 0.5124062319676861,
+    "model_recall_at_rule_precision": 0.864396999422966,
+    "model_precision_at_rule_recall": 0.9928425357873211,
+    "model_errors_at_rule_recall": 0.007157464212678932,
+    "rule_errors": 0.04925053533190582
+   },
+   "all 12 cities": {
+    "matches": 24694,
+    "non_matches": 133534,
+    "rule_precision": 0.9532666975574237,
+    "rule_recall": 0.583178099943306,
+    "model_recall_at_rule_precision": 0.884870818822386,
+    "model_precision_at_rule_recall": 0.9914053905390539,
+    "model_errors_at_rule_recall": 0.008594609460946145,
+    "rule_errors": 0.04673330244257634
+   }
+  },
+  "cascade_shares": {
+   "Key rules": 0.12860740068827733,
+   "Cheap model, confident": 0.6039276024572509,
+   "Uncertain: cross-encoder, LLM, human": 0.2674649968544718
+  },
+  "dubai": {
+   "lodging_listings": 5187,
+   "canonical_entities": 4074,
+   "reduction": 0.21457489878542513,
+   "multi_source_entities": 718,
+   "entities_with_same_source_duplicates": 76,
+   "largest_cluster": 7
+  },
+  "paris": {
+   "lodging_listings": 9674,
+   "canonical_entities": 6820,
+   "reduction": 0.2950175728757495,
+   "multi_source_entities": 1938,
+   "entities_with_same_source_duplicates": 224,
+   "largest_cluster": 6
+  }
+ },
+ "fsq_benchmark": {
+  "truth": "competition labels (research only)",
+  "records": 1138812,
+  "test_records": 227706,
+  "model_iou": 0.8782634171500319,
+  "best_rule_iou": 0.7825941448585232,
+  "b3_f1": 0.9369198081079169,
+  "blocking_ceiling_iou": 0.9593224115542026
+ },
+ "ota_transfer": {
+  "truth": "none: counts only, label sheet prepared",
+  "makemytrip": 15168,
+  "goibibo": 4000,
+  "accepted_pairs": 546,
+  "goibibo_with_twin": 484,
+  "missed_by_naive_rule": 63,
+  "naive_pairs_not_accepted": 179,
+  "median_dist_m": 21.282854080200195
+ },
+ "rooms": {
+  "truth": "real hotel room lists; second supplier simulated by rewrite rules",
+  "hotels": 1484,
+  "rooms": 8385,
+  "renamed_strings": 50310,
+  "parser_coverage": 0.9569270522758895,
+  "parser_precision": 0.9998753712896994,
+  "best_fuzzy_coverage": 0.5991850526734248,
+  "strings_for_90pct_bookings": 285,
+  "real_strings": 2383
+ },
+ "sightseeing": {
+  "truth": "real Klook Singapore products; second supplier simulated; in-sample",
+  "products": 87,
+  "pairs": 783,
+  "accuracy": 0.9642401021711366,
+  "macro_f1": 0.9643443411625751,
+  "dedup_merges_variants": 0.9540229885057471,
+  "dedup_merges_combos": 1.0
+ },
+ "matching_stage2": {
+  "truth": "same weak labels and leave-one-city-out protocol as matching; nested so stage 2 never sees the held-out city",
+  "auc": [
+   0.994396741046379,
+   0.9956688259612712
+  ],
+  "average_precision": [
+   0.9760572865532292,
+   0.9824265720676245
+  ],
+  "recall_at_99_precision": [
+   0.6136308414999595,
+   0.6982262897869927
+  ],
+  "precision_at_95_recall": [
+   0.8880981223500909,
+   0.9274193548387096
+  ],
+  "cities_with_higher_ap": 11,
+  "cities": 12,
+  "stage3_model": "xlm-roberta-base",
+  "stage3_average_precision": 0.9833355717582456,
+  "stage3_auc": 0.9959842297813969,
+  "stage3_precision_at_95_recall": 0.9351084183673469,
+  "stage3_recall_at_99_precision": 0.6883858427148295
+ },
+ "rooms_semantic": {
+  "truth": "same simulated second supplier as rooms; thresholds on 20% of hotels, scores on the other 80%",
+  "parser_correct": 0.9587840173852916,
+  "parser_precision": 0.9998969842128306,
+  "embedding_correct": 0.8066627154640194,
+  "embedding_precision": 0.990328644191123,
+  "cascade_correct": 0.9984442139576234,
+  "cascade_precision": 0.9984442139576234
+ },
+ "sightseeing_heldout": {
+  "truth": "same real products; second supplier simulated with templates written after the rules were frozen",
+  "pairs": 783,
+  "rules_accuracy": 0.7420178799489144,
+  "rules_macro_f1": 0.7423214686281435,
+  "llm": "Qwen/Qwen2.5-7B-Instruct",
+  "llm_accuracy": 0.8735632183908046,
+  "llm_macro_f1": 0.8771034413844259,
+  "cascade_accuracy": 0.8722860791826309,
+  "cascade_macro_f1": 0.875528801908568
+ },
+ "fsq_v2": {
+  "truth": "competition labels (research only); places split 50/50, thresholds picked on world A, scores on world B",
+  "records_per_world": 570024,
+  "candidates_per_record": 14.876050832947385,
+  "retrieval_ceiling_iou": 0.9941053089858272,
+  "retrieval_ceiling_direct_iou": 0.9826113866530255,
+  "v1_retrieval_ceiling_iou": 0.940736593219365,
+  "v1_recipe_iou": 0.841978274515438,
+  "v2_pair_model_iou": 0.887431676229842,
+  "v2_collective_iou": 0.8970499466357573,
+  "v2_collective_auc": 0.9920836835722825,
+  "best_rule_iou": 0.7598068285136197,
+  "published_first_place_cv": {
+   "lightgbm_stage": 0.875,
+   "transformer_ensemble": 0.911,
+   "with_post_processing": 0.9166,
+   "retrieval_max_iou": 0.979
+  },
+  "v2_cross_encoder_iou": 0.9165312809463148,
+  "cross_encoder": "xlm-roberta-base",
+  "v2_best_iou": 0.9165312809463148
+ }
+}
