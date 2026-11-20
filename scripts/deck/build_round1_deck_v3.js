@@ -5,7 +5,7 @@
  * Look: paper-white, near-black ink, one signal orange. Franklin Gothic (ships with Office on Windows and Mac) for headings and
  * canonical values, Consolas for raw supplier strings, Arial for the Arabic name. Status is shown by form, never by colour:
  * solid = measured on real data, hatched = tested with a simulated second supplier, outline = designed, not yet measured.
- * Hatching is a native PowerPoint pattern fill, written in post-processing (pptxgenjs has no pattern fills).
+ * Hatching is drawn as three diagonal strokes per mark, so PowerPoint, Keynote, Google Slides and the PDF all show it the same way.
  *
  * Usage:  cd scripts/deck && node build_round1_deck_v3.js
  *         $env:CANON_TEAM = "Team X: A, B, C"; $env:CANON_LINK = "github.com/..."; node build_round1_deck_v3.js
@@ -79,7 +79,6 @@ const diffAB = tidy(rAB.diff[0]), diffAC = tidy(rAC.diff[0]);
 
 /* ------------------------------------------------------------------ look */
 const C = { paper: "FBFAF7", ink: "15140F", ink2: "4F4B43", ink3: "8A857C", hair: "D9D4C9", hair2: "B5AFA2", signal: "FF4F00", signalText: "C03A00" };
-const HATCH = "A1B2C3"; // sentinel fill colour, replaced by a native diagonal pattern after writing
 const F = { head: "Franklin Gothic Medium", body: "Franklin Gothic Book", mono: "Consolas", arabic: "Arial" };
 const MONO_W = pt => pt * 0.5498 / 72;           // Consolas advance per character, inches
 const ARAB_W = (s, pt) => s.length * pt * 0.0047;  // Arial Arabic, measured on the renders
@@ -142,8 +141,14 @@ function link(s, x1, y1, xe, xn, yn, name) {
 }
 // status glyph: the one legend, used everywhere
 function glyph(s, x, y, status, sz = 0.15, name) {
-  const fill = status === "measured" ? C.ink : status === "simulated" ? HATCH : C.paper;
+  const fill = status === "measured" ? C.ink : C.paper;
   s.addShape(S.RECTANGLE, { x, y, w: sz, h: sz, fill: { color: fill }, line: { color: C.ink, width: 0.75 }, objectName: name || `Status: ${status}` });
+  if (status === "simulated") { // hatching as three drawn strokes: not every viewer draws pattern fills
+    const k = sz / 2;
+    seg(s, x, y + k, x + k, y, { color: C.ink, width: 0.75 }, "Hatch");
+    seg(s, x, y + sz, x + sz, y, { color: C.ink, width: 0.75 }, "Hatch");
+    seg(s, x + k, y + sz, x + sz, y + k, { color: C.ink, width: 0.75 }, "Hatch");
+  }
 }
 const dot = (s, cx, cy, r = 0.055, color = C.ink, hollow = false, name) =>
   s.addShape(S.OVAL, { x: cx - r, y: cy - r, w: 2 * r, h: 2 * r, fill: { color: hollow ? C.paper : color }, line: { color, width: hollow ? 1.25 : 0.5 }, objectName: name });
@@ -338,6 +343,10 @@ pres.addSection({ title: "Solution" });
   const BAR = 0.44, y0s = TOP + 0.36;
   const content = hs.reduce((a, b) => a + b, 0) + BAR + 0.12 + conH;
   const gap = Math.max(0.06, (newEnd - y0s - content) / 10);
+  // the spine line goes in first, so the status marks sit on top of it
+  const gyPre = [];
+  hs.reduce((t, h, i) => { gyPre.push(t); return t + h + gap + (i === 2 ? BAR : 0); }, y0s);
+  seg(s, SX + 0.075, gyPre[0] + 0.18, SX + 0.075, gyPre[8] + 0.03, { color: C.ink, width: 0.75 }, "Spine");
   let sy = y0s;
   const gy = [];
   STAGES.forEach(([st, h, d], i) => {
@@ -361,7 +370,7 @@ pres.addSection({ title: "Solution" });
       sy = by + BAR + gap / 2;
     }
   });
-  seg(s, SX + 0.075, gy[0] + 0.18, SX + 0.075, gy[8] + 0.03, { color: C.ink, width: 0.75 }, "Spine");
+  must(gy.every((v, i) => Math.abs(v - gyPre[i]) < 1e-9), "spine pre-pass matches the stage positions");
   hline(s, SX, SXR, sy - gap / 2 + 0.02, { color: C.hair2, dashType: "dash" }, "Console divider");
   glyph(s, SX, sy + 0.1, "designed", 0.15, "Review console status");
   T(s, [run(console_[0], { fontFace: F.head, color: C.ink }), run(console_[1], { color: C.ink2 })], { x: TX, y: sy + 0.07, w: SXR - TX, h: conH + 0.04, fontSize: FS });
@@ -555,20 +564,12 @@ const THEME_XML = `<a:clrScheme name="Canon"><a:dk1><a:srgbClr val="${C.ink}"/><
   `<a:accent2><a:srgbClr val="${C.ink}"/></a:accent2><a:accent3><a:srgbClr val="${C.ink3}"/></a:accent3><a:accent4><a:srgbClr val="${C.signalText}"/></a:accent4>` +
   `<a:accent5><a:srgbClr val="${C.ink2}"/></a:accent5><a:accent6><a:srgbClr val="${C.hair}"/></a:accent6><a:hlink><a:srgbClr val="${C.signalText}"/></a:hlink>` +
   `<a:folHlink><a:srgbClr val="${C.ink3}"/></a:folHlink></a:clrScheme>`;
-const PATT = `<a:pattFill prst="wdUpDiag"><a:fgClr><a:srgbClr val="${C.ink}"/></a:fgClr><a:bgClr><a:srgbClr val="${C.paper}"/></a:bgClr></a:pattFill>`;
-
 pres.writeFile({ fileName: OUT }).then(async () => {
   const zip = await JSZip.loadAsync(fs.readFileSync(OUT)), clean = new JSZip();
-  let hatched = 0;
   for (const [name, f] of Object.entries(zip.files)) {
     if (f.dir) continue; // pptxgenjs writes folder entries; some viewers refuse them
     let buf = await f.async("nodebuffer");
-    if (/^ppt\/slides\/slide\d+\.xml$/.test(name)) {
-      let xml = buf.toString("utf8");
-      xml = xml.replace(new RegExp(`<a:solidFill><a:srgbClr val="${HATCH}"\\s*/></a:solidFill>|<a:solidFill><a:srgbClr val="${HATCH}"></a:srgbClr></a:solidFill>`, "g"), () => { hatched++; return PATT; });
-      must(!xml.includes(HATCH), `hatch sentinel left in ${name}`);
-      buf = Buffer.from(xml, "utf8");
-    } else if (name === "ppt/theme/theme1.xml") {
+    if (name === "ppt/theme/theme1.xml") { // pptxgenjs writes Office's palette; give the theme Canon's colours
       const xml = buf.toString("utf8");
       must(/<a:clrScheme name="[^"]*">[\s\S]*?<\/a:clrScheme>/.test(xml), "theme colour scheme found");
       buf = Buffer.from(xml.replace(/<a:clrScheme name="[^"]*">[\s\S]*?<\/a:clrScheme>/, THEME_XML).replace(/name="Office Theme"/, 'name="Canon"'), "utf8");
@@ -576,5 +577,5 @@ pres.writeFile({ fileName: OUT }).then(async () => {
     clean.file(name, buf, { createFolders: false });
   }
   fs.writeFileSync(OUT, await clean.generateAsync({ type: "nodebuffer", compression: "DEFLATE" }));
-  console.log(`wrote ${OUT} (${hatched} hatched shapes)`);
+  console.log(`wrote ${OUT}`);
 });

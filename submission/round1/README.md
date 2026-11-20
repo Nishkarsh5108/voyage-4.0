@@ -90,4 +90,5 @@ v3 design, in short:
 - Type: Franklin Gothic Medium / Book for headings and canonical values, Consolas for raw supplier strings, Arial for the Arabic name. All three
   ship with Office on Windows and Mac, so nothing needs embedding; the PDF covers any other viewer. Colours follow the website: paper `FBFAF7`,
   ink `15140F`, signal orange `FF4F00` (`C03A00` for orange text).
-- The hatching is a native PowerPoint pattern fill, written after pptxgenjs saves the file (pptxgenjs cannot write pattern fills).
+- The hatching is drawn as three short diagonal line shapes in each mark, not a pattern fill: some viewers (Google Slides, web previews)
+  draw pattern fills as solid, which would make "simulated" look like "measured".
