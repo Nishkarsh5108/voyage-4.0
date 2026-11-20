@@ -48,7 +48,7 @@ submission/round1/  deck, video script, figures, screens, numbers.json, README
 data/raw|interim|processed   (gitignored)
 ```
 
-## Status (last updated 20 Nov 2026, 08:10; deck v3 under Phase 4; tonight's model work is under "Overnight ML upgrade" below)
+## Status (last updated 20 Nov 2026, 10:45; deck v3 under Phase 4; tonight's model work is under "Overnight ML upgrade" below)
 
 ### Phase 1 — data sources: DONE
 
@@ -65,8 +65,8 @@ Rebuild order from nothing: `scripts/download/*.py` → `scripts/download/wikida
    Someone must open https://www.kaggle.com/competitions/expedia-personalized-sort/rules and accept the rules with the account
    whose token is used. Then: `kaggle competitions download -c expedia-personalized-sort -f data.zip -p data/raw/expedia_icdm2013`.
    **The whole ranking track (LambdaMART, position-bias correction, duplicate collapsing) waits on this.**
-2. **Deck placeholders**: team name and members on the cover (and the v3 thank-you slide), repository link on the thank-you slide
-   (see `submission/round1/README.md`). The git remote is `github.com/Nishkarsh5108/voyage-4.0`; whether that is the link to show is the user's call.
+2. ~~Deck placeholders~~ Done on v3 (20 Nov): Team Hent-AI, Nishkarsh Singhal and Hirak Biswas; link `github.com/Nishkarsh5108/voyage-4.0`
+   (the user's choice). They are the generator's defaults now; `CANON_TEAM` / `CANON_LINK` still override them.
 3. **Viator Basic Access / Hotelbeds evaluation keys** need a human sign-up. Product-level sightseeing data is the thinnest part of the data.
 4. **Human labels.** `data/processed/city_matcher/label_sheet.csv` holds 400 pairs to label (same / part-of or variant / different / unsure);
    `data/processed/ota_matcher/label_sheet.csv` holds 280 for the two OTA feeds. The `_key.csv` files hold buckets and model scores:
@@ -124,6 +124,15 @@ mode.": dumbbell of the 12 held-out cities, a table of everything else with its 
 beside the in-sample 96%). Example details come from `demo/data.js`; the generator asserts they still match what is drawn and that no block runs
 off a slide. `render.ps1` now takes `-Deck`, `-Out`, `-Pdf` (run it with `-ExecutionPolicy Bypass`; the machine's policy blocks scripts).
 Speaker notes follow `VIDEO_SCRIPT.md`'s time codes; the script now points at slide 3 for its numbers. `Canon_Round1.pptx` is untouched.
+
+Deck v3 overlap pass (20 Nov, 10:45; the user saw text overlapping). Cause: a viewer without Franklin Gothic and Consolas substitutes wider
+fonts, and text sized for the Office fonts wrapped into its neighbours (confirmed by rendering a copy with Arial and Courier New swapped in:
+about a dozen collisions). Fix: the generator now measures text with Arial's advance widths (+5%) and monospace at 0.6 em, so every box
+holds the widest likely substitute; one-line labels are set not to wrap; it stops if any text block needs more lines than its box holds.
+Texts were trimmed to fit, the tour rows got more room, the three relation lines now meet node A at three heights (the arrowhead used to sit
+on the other two), and slide 2's legend is split: relations under the graph, status stacked under the pipeline. Checked by rendering both
+the real deck and the font-swapped copy (Arial / Courier New) through PowerPoint: no collisions on any slide in either.
+To repeat the check: swap the font names in a copy of the pptx (any zip tool), render it with `render.ps1`, and look.
 
 ### Phase 5 — public website: BUILT (19 Nov 2026)
 
@@ -220,8 +229,8 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
 
 - [ ] User: look at `Canon_Round1_v3.pptx` (renders in `submission/round1/qa_v3/`) and pick v3 or the first deck. Once v3 is chosen,
       it may replace `Canon_Round1.pptx` (not done: the user asked to see it first).
-- [ ] User: fill the deck placeholders (team line, repository link; `CANON_TEAM` / `CANON_LINK`), record the video from `VIDEO_SCRIPT.md`,
-      check Unstop's upload format, submit by 20 Nov 11:59 PM IST.
+- [x] Deck placeholders filled on v3 (team, members, repository link).
+- [ ] User: record the video from `VIDEO_SCRIPT.md`, check Unstop's upload format, submit by 20 Nov 11:59 PM IST.
 - [ ] User: accept the Expedia rules on Kaggle. Then model F: Expedia EDA, LambdaMART vs inverse-propensity-weighted, NDCG@5 on the
       random-order slice, duplicate injection. If it lands before the 20th, add one number to slide 3 (v3 deck) and the script.
 - [ ] Label the 400-pair sheet, then report model B against human labels and re-pick the accept threshold.

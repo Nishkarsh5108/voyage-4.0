@@ -7,6 +7,10 @@
  * solid = measured on real data, hatched = tested with a simulated second supplier, outline = designed, not yet measured.
  * Hatching is drawn as three diagonal strokes per mark, so PowerPoint, Keynote, Google Slides and the PDF all show it the same way.
  *
+ * Layout is sized for the widest fonts a viewer might substitute (Arial or Helvetica for Franklin Gothic, Courier New or Menlo
+ * for Consolas), so a viewer without the Office fonts wraps nothing into its neighbour. One-line labels never wrap, and the
+ * generator stops if a text block would need more lines than its box holds at those widths.
+ *
  * Usage:  cd scripts/deck && node build_round1_deck_v3.js
  *         $env:CANON_TEAM = "Team X: A, B, C"; $env:CANON_LINK = "github.com/..."; node build_round1_deck_v3.js
  * Output: submission/round1/Canon_Round1_v3.pptx    Render: powershell -ExecutionPolicy Bypass -File render.ps1 -Deck Canon_Round1_v3.pptx -Out qa_v3
@@ -22,14 +26,14 @@ const OUT = path.join(R1, process.env.CANON_OUT || "Canon_Round1_v3.pptx");
 const N = JSON.parse(fs.readFileSync(path.join(R1, "numbers.json"), "utf8"));
 const demoSrc = fs.readFileSync(path.join(ROOT, "demo", "data.js"), "utf8");
 const D = JSON.parse(demoSrc.slice(demoSrc.indexOf("=") + 1).trim().replace(/;\s*$/, ""));
-const TEAM = process.env.CANON_TEAM || "[ Team name  ·  Members ]";
-const LINK = process.env.CANON_LINK || "[ Repository link ]";
+const TEAM = process.env.CANON_TEAM || "Team Hent-AI  ·  Nishkarsh Singhal, Hirak Biswas";
+const LINK = process.env.CANON_LINK || "github.com/Nishkarsh5108/voyage-4.0";
 
 /* ------------------------------------------------------------------ data */
 const pct = (x, d = 0) => (x * 100).toFixed(d) + "%";
 const p0 = x => Math.round(x * 100);
 const num = x => Number(x).toLocaleString("en-US");
-const must = (cond, msg) => { if (!cond) throw new Error("data check failed: " + msg); };
+const must = (cond, msg) => { if (!cond) throw new Error("check failed: " + msg); };
 
 const M = N.matching, FAIR = M.fair_comparison, ALL = FAIR["all 12 cities"];
 const CASC = M.cascade_shares;
@@ -46,7 +50,7 @@ const atl = D.matching.clusters.find(c => /^Atlantis, the Palm$/i.test(c.name));
 must(atl && atl.members.length === 4, "Atlantis cluster with four members");
 const SRCNAME = { overture: "Overture", wikidata: "Wikidata", wikivoyage: "Wikivoyage", osm: "OpenStreetMap" };
 const atlMembers = ["overture", "wikidata", "wikivoyage", "osm"].map(s => atl.members.find(m => m.src === s));
-const isArabic = s => /[\u0600-\u06FF]/.test(s);
+const isArabic = s => /[؀-ۿ]/.test(s);
 const arab = atl.members.find(m => isArabic(m.name));
 must(arab, "an Arabic member");
 const atlMaxPin = Math.max(...atl.edges.map(e => e.d));
@@ -80,24 +84,40 @@ const diffAB = tidy(rAB.diff[0]), diffAC = tidy(rAC.diff[0]);
 /* ------------------------------------------------------------------ look */
 const C = { paper: "FBFAF7", ink: "15140F", ink2: "4F4B43", ink3: "8A857C", hair: "D9D4C9", hair2: "B5AFA2", signal: "FF4F00", signalText: "C03A00" };
 const F = { head: "Franklin Gothic Medium", body: "Franklin Gothic Book", mono: "Consolas", arabic: "Arial" };
-const MONO_W = pt => pt * 0.5498 / 72;           // Consolas advance per character, inches
+// Layout widths are those of the widest likely substitute, so the slides hold in any viewer: proportional text is measured
+// with Arial's advance widths (the same as Helvetica's; a viewer without Franklin Gothic falls back to one of them, and
+// Franklin Gothic itself is narrower), plus 5% for a bold substitute; monospace at 0.6 em (Courier New, Menlo, DejaVu Sans
+// Mono; Consolas is 0.55).
+const ARIAL_W = (() => {
+  const w = {}, set = (chars, v) => { for (const ch of chars) w[ch] = v; };
+  set("ijl", 222); set("|", 260); set(" !,./:;I[\\]ft", 278); set("'", 191); set("-()`r", 333); set("{}", 334); set("\"", 355); set("*", 389);
+  set("^", 469); set("Jcksvxyz", 500); set("#$0123456789?_Labdeghnopqu", 556); set("+<=>~", 584); set("FTZ", 611);
+  set("&ABEKPSVXY", 667); set("CDHNRUw", 722); set("GOQ", 778); set("Mm", 833); set("%", 889); set("W", 944); set("@", 1015);
+  set("·", 278); set("‘’", 222); set("“”", 333); set("–", 556); set("≥", 549); set("—→↔™", 1000);
+  return w;
+})();
+const MONO_W = pt => pt * 0.6 / 72;               // inches per monospace character
 const ARAB_W = (s, pt) => s.length * pt * 0.0047;  // Arial Arabic, measured on the renders
-// rough line count for wrapped Franklin Gothic text (greedy word wrap); em = average advance in ems, calibrated on renders
-function nlines(text, w, pt, em = 0.44) {
-  const max = w / (pt * em / 72); let lines = 1, cur = 0;
+const tw = (text, pt) => [...String(text)].reduce((a, ch) => a + (ARIAL_W[ch] || 600), 0) / 1000 * pt / 72 * 1.05; // one-line width, inches
+// line count for wrapped text (greedy word wrap, as PowerPoint wraps), at the layout widths above
+function nlines(text, w, pt, mono = false) {
+  const W = mono ? (t => t.length * MONO_W(pt)) : (t => tw(t, pt)), sp = W(" ");
+  let lines = 1, cur = 0;
   for (const word of String(text).split(/\s+/).filter(Boolean)) {
-    const L = word.length + (cur ? 1 : 0);
-    if (cur + L > max && cur > 0) { lines++; cur = word.length; } else cur += L;
+    const ww = W(word);
+    if (cur > 0 && cur + sp + ww > w) { lines++; cur = ww; } else cur += (cur ? sp : 0) + ww;
   }
   return lines;
 }
 const LH = pt => pt * 1.14 / 72; // line height, inches
+const fits = (text, w, pt, n, what, mono = false) => must(nlines(text, w, pt, mono) <= n, `${what} fits in ${n} line(s) at ${w.toFixed(2)} in`);
+const plain = runs => runs.map(r => r.text).join("");
 
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE"; // 13.333 x 7.5 in
 pres.theme = { headFontFace: F.head, bodyFontFace: F.body };
 pres.title = "Canon: one product graph across suppliers";
-pres.author = "VoyageHack 4.0 team";
+pres.author = "Team Hent-AI";
 pres.subject = "VoyageHack 4.0, Multi-Supplier Optimization, Round 1";
 const S = pres.shapes;
 
@@ -119,8 +139,9 @@ pres.defineSlideMaster({
 
 /* ------------------------------------------------------------------ drawing helpers */
 const T = (s, text, o) => s.addText(text, { isTextBox: true, margin: 0, fontFace: F.body, fontSize: 11, color: C.ink, valign: "top", ...o });
+const T1 = (s, text, o) => T(s, text, { wrap: false, ...o }); // a one-line label: never wraps into what is below it
 const run = (text, o = {}) => ({ text, options: o });
-const capLabel = (s, text, x, y, w, o = {}) => T(s, text.toUpperCase(), { x, y, w, h: 0.2, fontFace: F.head, fontSize: 10, color: C.ink2, charSpacing: 0.8, valign: "middle", ...o });
+const capLabel = (s, text, x, y, w, o = {}) => T1(s, text.toUpperCase(), { x, y, w, h: 0.2, fontFace: F.head, fontSize: 10, color: C.ink2, charSpacing: 0.8, valign: "middle", ...o });
 const hline = (s, x1, x2, y, o = {}, name) => s.addShape(S.LINE, { x: x1, y, w: x2 - x1, h: 0, line: { color: C.ink, width: 0.75, ...o }, objectName: name });
 // a straight segment from (x1, y1) to (x2, y2); the flips keep start and end in place, so an arrowhead lands on (x2, y2)
 function seg(s, x1, y1, x2, y2, ln, name) {
@@ -154,58 +175,65 @@ const dot = (s, cx, cy, r = 0.055, color = C.ink, hollow = false, name) =>
   s.addShape(S.OVAL, { x: cx - r, y: cy - r, w: 2 * r, h: 2 * r, fill: { color: hollow ? C.paper : color }, line: { color, width: hollow ? 1.25 : 0.5 }, objectName: name });
 // numbered marker: ties a "what is new" mechanism to the places it appears
 const marker = (s, n, x, y) => s.addText(String(n), { isTextBox: true, shape: S.OVAL, x, y, w: 0.22, h: 0.22, fill: { color: C.ink }, line: { color: C.ink, width: 0.5 },
-  fontFace: F.head, fontSize: 10, color: C.paper, align: "center", valign: "middle", margin: 0, objectName: `New ${n} marker` });
+  fontFace: F.head, fontSize: 10, color: C.paper, align: "center", valign: "middle", margin: 0, wrap: false, objectName: `New ${n} marker` });
 
+// a one-line legend; item widths come from the layout widths, so it holds with substituted fonts. Returns its right end.
 function legend(s, x, y, parts) {
   let cx = x;
-  const lab = (text, w, o = {}) => { T(s, text, { x: cx, y: y - 0.1, w, h: 0.2, fontSize: 10, color: C.ink2, valign: "middle", ...o }); cx += w; };
+  const lab = (text, o = {}) => { const w = tw(plain(Array.isArray(text) ? text : [{ text }]), 10) + 0.04;
+    T1(s, text, { x: cx, y: y - 0.1, w, h: 0.2, fontSize: 10, color: C.ink2, valign: "middle", ...o }); cx += w + 0.16; };
   for (const p of parts) {
-    if (p.head) { lab(p.head, p.w, { fontFace: F.head, color: C.ink }); continue; }
-    if (p.line) { seg(s, cx, y, cx + 0.34, y, REL[p.line](), `Legend ${p.line}`); cx += 0.42; lab(p.text, p.w); continue; }
-    if (p.status) { glyph(s, cx, y - 0.075, p.status, 0.15, `Legend ${p.status}`); cx += 0.22; lab(p.text, p.w); continue; }
-    if (p.runs) { T(s, p.runs, { x: cx, y: y - 0.1, w: p.w, h: 0.2, fontSize: 10, color: C.ink2, valign: "middle" }); cx += p.w; }
+    if (p.head) { lab(p.head, { fontFace: F.head, color: C.ink }); continue; }
+    if (p.line) { seg(s, cx, y, cx + 0.34, y, REL[p.line](), `Legend ${p.line}`); cx += 0.42; lab(p.text); continue; }
+    if (p.status) { glyph(s, cx, y - 0.075, p.status, 0.15, `Legend ${p.status}`); cx += 0.22; lab(p.text); continue; }
+    if (p.runs) lab(p.runs);
   }
+  return cx - 0.16;
 }
 const STATUS_LEGEND = [
-  { status: "measured", text: "measured on real data", w: 1.52 },
-  { status: "simulated", text: "simulated second supplier", w: 1.8 },
-  { status: "designed", text: "designed, not yet measured", w: 1.72 },
+  { status: "measured", text: "measured on real data" },
+  { status: "simulated", text: "simulated second supplier" },
+  { status: "designed", text: "designed, not yet measured" },
 ];
 
 /* ================================================================== cover */
 pres.addSection({ title: "Cover" });
 {
   const s = pres.addSlide({ masterName: "CANON_COVER", sectionTitle: "Cover" });
-  T(s, "VoyageHack 4.0  ·  Multi-Supplier Optimization  ·  Round 1 idea submission", { x: 0.6, y: 0.55, w: 8, h: 0.25, fontSize: 12, color: C.ink2 });
+  T1(s, "VoyageHack 4.0  ·  Multi-Supplier Optimization  ·  Round 1 idea submission", { x: 0.6, y: 0.55, w: 8, h: 0.25, fontSize: 12, color: C.ink2 });
   s.addText("Canon", { placeholder: "title" });
-  T(s, "One product graph across suppliers: duplicates found, differences kept.", { x: 0.6, y: 2.95, w: 5.9, h: 0.95, fontSize: 24, color: C.ink });
-  T(s, TEAM, { x: 0.6, y: 5.5, w: 6.3, h: 0.3, fontSize: 14, fontFace: F.head, color: C.ink, objectName: "Team line" });
-  T(s, `Runs today on ${num(N.data.listings_total)} real listings from ${N.data.sources} independent sources in ${N.data.cities} cities.`,
+  T1(s, [run("One product graph across suppliers:", { breakLine: true }), run("duplicates found, differences kept.")], { x: 0.6, y: 2.95, w: 6.3, h: 0.95, fontSize: 24, color: C.ink });
+  T1(s, TEAM, { x: 0.6, y: 5.5, w: 6.3, h: 0.3, fontSize: 14, fontFace: F.head, color: C.ink, objectName: "Team line" });
+  T1(s, `Runs today on ${num(N.data.listings_total)} real listings from ${N.data.sources} independent sources in ${N.data.cities} cities.`,
     { x: 0.6, y: 5.92, w: 6.4, h: 0.25, fontSize: 12, color: C.ink2 });
+  must(tw(TEAM, 14) < 6.4, "team line fits on the cover");
 
   // motif: four raw supplier strings resolve to one canonical hotel (the real Dubai cluster)
-  const x0 = 7.25, rawX = x0 + 1.2, nodeX = 10.85, R = 12.83;
+  const x0 = 7.05, rawX = x0 + 1.24, nodeX = 10.5, R = 12.83;
   capLabel(s, "Four sources send", x0, 2.0, 3);
   capLabel(s, "Canon keeps", nodeX + 0.15, 2.0, 1.8);
   hline(s, x0, R, 2.25);
   const ys = atlMembers.map((m, i) => 2.6 + i * 0.36), ny = ys.reduce((a, b) => a + b) / ys.length;
-  const wOf = m => isArabic(m.name) ? ARAB_W(m.name, 15) : m.name.length * MONO_W(13);
-  const elbow = rawX + Math.max(...atlMembers.map(wOf)) + 0.15;
+  const wOf = m => isArabic(m.name) ? ARAB_W(m.name, 14) : m.name.length * MONO_W(12);
+  const elbow = rawX + Math.max(...atlMembers.map(wOf)) + 0.1;
+  must(nodeX - elbow > 0.3, "cover links have room to converge");
   atlMembers.forEach((m, i) => {
-    const ar = isArabic(m.name), fz = ar ? 15 : 13, w = wOf(m);
-    T(s, SRCNAME[m.src], { x: x0, y: ys[i] - 0.12, w: 1.15, h: 0.24, fontSize: 11, color: C.ink2, valign: "middle" });
-    T(s, m.name, { x: rawX, y: ys[i] - 0.14, w: w + 0.2, h: 0.28, fontFace: ar ? F.arabic : F.mono, fontSize: fz, valign: "middle" });
-    link(s, rawX + w + 0.12, ys[i], elbow, nodeX, ny, `Same-as line ${i + 1}`);
+    const ar = isArabic(m.name), w = wOf(m);
+    must(tw(SRCNAME[m.src], 11) < rawX - x0 - 0.08, "cover source label clears its string");
+    T1(s, SRCNAME[m.src], { x: x0, y: ys[i] - 0.12, w: 1.12, h: 0.24, fontSize: 11, color: C.ink2, valign: "middle" });
+    T1(s, m.name, { x: rawX, y: ys[i] - 0.14, w: w + 0.1, h: 0.28, fontFace: ar ? F.arabic : F.mono, fontSize: ar ? 14 : 12, valign: "middle" });
+    link(s, rawX + w + 0.07, ys[i], elbow, nodeX, ny, `Same-as line ${i + 1}`);
   });
   dot(s, nodeX, ny, 0.07);
-  T(s, "Atlantis, The Palm", { x: nodeX + 0.15, y: ny - 0.32, w: R - nodeX - 0.15, h: 0.64, fontFace: F.head, fontSize: 16, valign: "middle" });
+  T1(s, "Atlantis, The Palm", { x: nodeX + 0.15, y: ny - 0.16, w: R - nodeX - 0.15, h: 0.32, fontFace: F.head, fontSize: 16, valign: "middle" });
+  must(tw("Atlantis, The Palm", 16) < R - nodeX - 0.15, "cover node label fits");
   hline(s, x0, R, 4.15, { color: C.hair });
-  T(s, `Real Dubai listings: four sources, two scripts, pins within ${atlMaxPin} m. One hotel.`, { x: x0, y: 4.25, w: R - x0, h: 0.25, fontSize: 11, color: C.ink2 });
+  T1(s, `Real Dubai listings: four sources, two scripts, pins within ${atlMaxPin} m. One hotel.`, { x: x0, y: 4.25, w: R - x0, h: 0.25, fontSize: 11, color: C.ink2 });
   s.addNotes(
     "Canon turns many supplier feeds into one product graph: hotels with room types and rate plans, attractions with products and options. " +
     "The picture on the right is real data from our validation demo: Overture, Wikidata, Wikivoyage and OpenStreetMap each list Atlantis, The Palm in Dubai, " +
     "and OpenStreetMap names it in Arabic. Canon resolves the four listings to one hotel and keeps the evidence for each link. " +
-    "In the video this is the opening frame, before tab 1 (0:00). Before submitting, replace the team line (or rebuild with CANON_TEAM)."
+    "In the video this is the opening frame, before tab 1 (0:00)."
   );
 }
 
@@ -214,9 +242,11 @@ pres.addSection({ title: "Solution" });
 {
   const s = pres.addSlide({ masterName: "CANON_CONTENT", sectionTitle: "Solution" });
   s.addText("It is not deduplication. It is a product graph.", { placeholder: "title" });
-  s.addText("Suppliers describe the same hotels, rooms and tours differently, and the statement asks for duplicates to be found “without losing meaningful differences”.", { placeholder: "body" });
+  const dek = "Suppliers describe the same hotels, rooms and tours differently. The task: find duplicates “without losing meaningful differences”.";
+  fits(dek, 12.33, 12.5, 1, "slide 2 dek");
+  s.addText(dek, { placeholder: "body" });
 
-  const EX = 0.5, EXR = 8.72, SRCW = 1.07, RAWX = EX + SRCW, NODEX = 4.72, CANX = 4.88, SX = 9.12, SXR = 12.83, TOP = 1.18;
+  const EX = 0.5, EXR = 8.72, SRCW = 1.07, RAWX = EX + SRCW, NODEX = 4.72, CANX = 4.88, SX = 9.12, SXR = 12.83, TOP = 1.16;
   capLabel(s, "What suppliers send", EX, TOP, 3.2);
   capLabel(s, "What Canon keeps", CANX, TOP, 3.2);
   hline(s, EX, EXR, TOP + 0.24);
@@ -225,22 +255,28 @@ pres.addSection({ title: "Solution" });
 
   const rawText = (txt, x, cy, fz = 10.5) => {
     const ar = isArabic(txt), w = ar ? ARAB_W(txt, 12) : txt.length * MONO_W(fz);
-    T(s, txt, { x, y: cy - 0.11, w: w + 0.15, h: 0.22, fontFace: ar ? F.arabic : F.mono, fontSize: ar ? 12 : fz, valign: "middle" });
-    return x + w; // right edge of the string
+    T1(s, txt, { x, y: cy - 0.11, w: w + 0.1, h: 0.22, fontFace: ar ? F.arabic : F.mono, fontSize: ar ? 12 : fz, valign: "middle" });
+    return x + w; // right edge of the string at the widest monospace
   };
-  const srcText = (txt, cy, h = 0.2) => T(s, txt, { x: EX, y: cy - h / 2, w: SRCW - 0.06, h, fontSize: 10, color: C.ink2, valign: "middle" });
-  const level = (status, text, y) => { glyph(s, CANX, y + 0.025, status, 0.15, `Row status: ${status}`); capLabel(s, text, CANX + 0.24, y, EXR - CANX - 0.24); };
+  const srcText = (txt, cy) => { must(tw(txt, 10) < SRCW - 0.02, `source label "${txt}" fits`);
+    T1(s, txt, { x: EX, y: cy - 0.1, w: SRCW - 0.06, h: 0.2, fontSize: 10, color: C.ink2, valign: "middle" }); };
+  const level = (status, text, y, mark) => {
+    glyph(s, CANX, y + 0.025, status, 0.15, `Row status: ${status}`);
+    capLabel(s, text, CANX + 0.24, y, EXR - CANX - 0.6);
+    if (mark) marker(s, mark, EXR - 0.22, y - 0.01);
+  };
 
   /* row 1: hotel */
   let y = TOP + 0.34;
   level("measured", "Hotel", y);
   const cys = atlMembers.map((m, i) => y + 0.14 + i * 0.235), ny = cys.reduce((a, b) => a + b) / cys.length;
   const ends = atlMembers.map((m, i) => { srcText(SRCNAME[m.src], cys[i]); return rawText(m.name, RAWX, cys[i]); });
-  const elbow1 = Math.max(...ends) + 0.12;
-  ends.forEach((xe, i) => link(s, xe + 0.1, cys[i], elbow1, NODEX, ny, `Hotel same-as ${i + 1}`));
+  const elbow1 = Math.max(...ends) + 0.1;
+  must(NODEX - elbow1 > 0.6, "hotel links have room to converge");
+  ends.forEach((xe, i) => link(s, xe + 0.07, cys[i], elbow1, NODEX, ny, `Hotel same-as ${i + 1}`));
   dot(s, NODEX, ny, 0.06, C.ink, false, "Hotel node");
-  T(s, "Atlantis, The Palm", { x: CANX, y: ny - 0.16, w: 3.6, h: 0.3, fontFace: F.head, fontSize: 15, valign: "middle" });
-  const note1 = `Two scripts, pins within ${atlMaxPin} m. A shared Wikidata ID and the pair model link them, though name similarity is only ${arabJw.toFixed(2)}.`;
+  T1(s, "Atlantis, The Palm", { x: CANX, y: ny - 0.16, w: 3.6, h: 0.3, fontFace: F.head, fontSize: 15, valign: "middle" });
+  const note1 = `Linked by a shared Wikidata ID and the pair model, though name similarity is only ${arabJw.toFixed(2)}.`;
   const n1h = nlines(note1, EXR - CANX, 10.5) * LH(10.5);
   T(s, note1, { x: CANX, y: ny + 0.15, w: EXR - CANX, h: n1h + 0.04, fontSize: 10.5, color: C.ink2 });
   y = Math.max(cys[3] + 0.2, ny + 0.15 + n1h + 0.05);
@@ -248,31 +284,32 @@ pres.addSection({ title: "Solution" });
 
   /* row 2: room type and rate plan */
   y += 0.08;
-  level("simulated", "Hotel → room type → rate plan", y);
-  const hy = y + 0.33, ry = y + 0.59, py = y + 0.9;
-  T(s, hil.hotel, { x: CANX, y: hy - 0.11, w: 3.6, h: 0.22, fontSize: 11, color: C.ink2, valign: "middle" });
+  level("simulated", "Hotel → room type → rate plan", y, 2);
+  const hy = y + 0.31, ry = y + 0.57, py = y + 0.86;
+  T1(s, hil.hotel, { x: CANX, y: hy - 0.11, w: 3.6, h: 0.22, fontSize: 11, color: C.ink2, valign: "middle" });
   seg(s, NODEX, hy, NODEX, py, { color: C.ink3, width: 0.75 }, "Hierarchy: hotel, room type, rate plan");
   dot(s, NODEX, hy, 0.045, C.ink2, false, "Hotel node");
   srcText("Real room list", ry);
   const xa = rawText(ra.name, RAWX, ry);
+  must(NODEX - xa > 0.3, "room string leaves room for its link");
   seg(s, xa + 0.1, ry, NODEX, ry, REL.same(), "Room same-as (real list)");
-  srcText("Simulated supplier", py, 0.36);
-  T(s, [run(roomToks.join(" ") + " ", { color: C.ink }), run(rateToks.join(" "), { color: C.signalText })],
-    { x: RAWX, y: py - 0.11, w: ROOMSTR.length * MONO_W(10.5) + 0.15, h: 0.22, fontFace: F.mono, fontSize: 10.5, valign: "middle" });
+  T(s, [run("Simulated", { breakLine: true }), run("supplier")], { x: EX, y: py - 0.09, w: SRCW - 0.06, h: 0.34, fontSize: 10, color: C.ink2, wrap: false });
+  T1(s, [run(roomToks.join(" ") + " ", { color: C.ink }), run(rateToks.join(" "), { color: C.signalText })],
+    { x: RAWX, y: py - 0.11, w: ROOMSTR.length * MONO_W(10.5) + 0.1, h: 0.22, fontFace: F.mono, fontSize: 10.5, valign: "middle" });
   const xb = RAWX + ROOMSTR.length * MONO_W(10.5);
   seg(s, xb + 0.1, py, NODEX, ry, REL.same(), "Room same-as (renamed)");
   seg(s, xb + 0.1, py, NODEX, py, RATE_LINE(), "Rate plan split off");
   dot(s, NODEX, ry, 0.06, C.ink, false, "Room type node");
   dot(s, NODEX, py, 0.06, C.signal, false, "Rate plan node");
-  T(s, roomCanon, { x: CANX, y: ry - 0.14, w: 3.0, h: 0.28, fontFace: F.head, fontSize: 13, valign: "middle" });
-  T(s, rateCanon, { x: CANX, y: py - 0.14, w: 3.0, h: 0.28, fontFace: F.head, fontSize: 13, color: C.signalText, valign: "middle" });
-  marker(s, 2, EXR - 0.22, ry - 0.11);
-  y = py + 0.22;
+  for (const t of [roomCanon, rateCanon]) must(tw(t, 13) < EXR - CANX, `"${t}" fits`);
+  T1(s, roomCanon, { x: CANX, y: ry - 0.14, w: 3.6, h: 0.28, fontFace: F.head, fontSize: 13, valign: "middle" });
+  T1(s, rateCanon, { x: CANX, y: py - 0.14, w: 3.6, h: 0.28, fontFace: F.head, fontSize: 13, color: C.signalText, valign: "middle" });
+  y = py + 0.27;
   hline(s, EX, EXR, y, { color: C.hair });
 
   /* row 3: attraction, products, relations */
   y += 0.08;
-  level("simulated", "Attraction → product → option", y);
+  level("simulated", "Attraction → product → option", y, 1);
   srcText("Klook", y + 0.1);
   const prod = [
     { name: "1-day ticket", rel: `${uss.family}: the base product` },
@@ -280,69 +317,90 @@ pres.addSection({ title: "Solution" });
     { name: "Combo packages in Sentosa", rel: `includes A  ·  ${diffAC}` },
     { name: "VIP Tour Experience", rel: "different from A  ·  a tour, not a pass" },
   ];
-  const TX0 = EX + 0.22, TW = NODEX - 0.55 - TX0; // raw title column
-  const pitch = 0.355, pys = prod.map((_, i) => y + 0.36 + i * pitch);
+  // relation, bracket offset, style, and the height at which it meets A: three heights, so the arrowhead touches neither of the others
+  const BR = [[1, 0.1, "variant", 0.06], [2, 0.2, "includes", 0], [3, 0.3, "different", -0.06]];
+  const RA = 0.08; // A, the base product, is the larger node all three relations meet
+  const TX0 = EX + 0.22, TW = NODEX - 0.08 - 0.3 - 0.12 - TX0; // raw title column ends clear of the outermost bracket
+  const pitch = 0.42, pys = prod.map((_, i) => y + 0.38 + i * pitch);
   prod.forEach((p, i) => {
-    const cy = pys[i], L = "ABCD"[i];
-    T(s, L, { x: EX, y: cy - 0.09, w: 0.2, h: 0.18, fontFace: F.head, fontSize: 10.5, color: C.ink2 });
-    T(s, uss.items[i].title, { x: TX0, y: cy - 0.095, w: TW, h: 0.32, fontFace: F.mono, fontSize: 10, color: C.ink, lineSpacingMultiple: 0.92 });
-    dot(s, NODEX, cy, 0.05, C.ink, false, `Product ${L}`);
-    T(s, [run(L + "  ", { fontFace: F.head, color: C.ink2 }), run(p.name, { fontFace: F.head, color: C.ink, breakLine: true }), run(p.rel, { fontSize: 10.5, color: C.ink2 })],
-      { x: CANX, y: cy - 0.1, w: EXR - CANX - 0.3, h: 0.34, fontSize: 11.5 });
+    const cy = pys[i], L = "ABCD"[i], title = uss.items[i].title;
+    fits(title, TW, 10, 2, `raw title ${L}`, true);
+    T1(s, L, { x: EX, y: cy - 0.09, w: 0.2, h: 0.18, fontFace: F.head, fontSize: 10.5, color: C.ink2 });
+    T(s, title, { x: TX0, y: cy - 0.095, w: TW, h: 0.32, fontFace: F.mono, fontSize: 10, color: C.ink, lineSpacingMultiple: 0.92 });
+    dot(s, NODEX, cy, i ? 0.05 : RA, C.ink, false, `Product ${L}`);
+    must(tw(p.rel, 10.5) < EXR - CANX && tw(`${L}  ${p.name}`, 11.5) < EXR - CANX, `product ${L} text fits`);
+    T1(s, [run(L + "  ", { fontFace: F.head, color: C.ink2 }), run(p.name, { fontFace: F.head, color: C.ink, breakLine: true }), run(p.rel, { fontSize: 10.5, color: C.ink2 })],
+      { x: CANX, y: cy - 0.1, w: EXR - CANX, h: 0.36, fontSize: 11.5 });
   });
-  // relations from A, as nested brackets left of the product nodes
-  for (const [i, off, kind] of [[1, 0.12, "variant"], [2, 0.24, "includes"], [3, 0.36, "different"]]) {
-    const xL = NODEX - 0.08 - off, a = pys[0], b = pys[i];
+  // relations from A, as nested brackets left of the product nodes; each meets A at its own height, so no two styles overlap
+  for (const [i, off, kind, dy] of BR) {
+    const xL = NODEX - 0.08 - off, a = pys[0] + dy, b = pys[i];
+    const atA = NODEX - Math.sqrt(RA * RA - dy * dy) - 0.02; // just short of A's edge at that height
     if (kind === "includes") { // C includes A: drawn from C, the arrow ends on A
       seg(s, NODEX - 0.07, b, xL, b, { color: C.ink, width: 1.25 }, "Includes, from C");
       seg(s, xL, b, xL, a, { color: C.ink, width: 1.25 }, "Includes, up");
-      seg(s, xL, a, NODEX - 0.08, a, REL.includes(), "Includes, to A");
+      seg(s, xL, a, atA, a, REL.includes(), "Includes, to A");
     } else {
-      seg(s, NODEX - 0.07, a, xL, a, REL[kind](), `${kind}, from A`);
+      seg(s, atA, a, xL, a, REL[kind](), `${kind}, from A`);
       seg(s, xL, a, xL, b, REL[kind](), `${kind}, down`);
       seg(s, xL, b, NODEX - 0.07, b, REL[kind](), `${kind}, to ${"ABCD"[i]}`);
     }
   }
-  marker(s, 1, EXR - 0.22, pys[1] - 0.11);
 
   /* what is new: four mechanisms, numbered where they appear */
-  y = pys[3] + 0.31;
+  y = pys[3] + 0.32;
   hline(s, EX, EXR, y);
-  capLabel(s, "What is new: four mechanisms, numbered where they appear", EX, y + 0.05, 7);
+  capLabel(s, "What is new: four mechanisms, numbered where they appear", EX, y + 0.06, 7);
   const NEW = [
-    ["Typed relations, not merge-or-don't. ", "Same as, variant of, includes or different, with the difference named."],
-    ["Rate plan out of the room name first. ", "Board and refund terms are split off, so rooms match on room attributes."],
-    ["Supplier reliability is priced. ", "Each offer's price carries its expected cost of a failed booking and of a price change."],
-    ["Cost follows the hard cases. ", `Key rules and a small model settle ${pct(cheap)} of pairs; only the rest reach costlier tools.`],
+    ["Typed relations, not merge-or-don't. ", "Variants and combos keep their difference, named."],
+    ["Rate plan out of the room name first, ", "so rooms match on room attributes alone."],
+    ["Supplier reliability is priced: ", "offers carry the expected cost of failures and price changes."],
+    ["Cost follows the hard cases: ", `rules and a small model settle ${pct(cheap)} of pairs; ${pct(shareOn)} go on.`],
   ];
-  const cw = (EXR - EX - 0.3) / 2;
+  const cw = (EXR - EX - 0.25) / 2, nw = cw - 0.28;
+  const nh = NEW.map(([h, d]) => nlines(h + d, nw, 10.5) * LH(10.5));
+  NEW.forEach((_, i) => must(nh[i] <= 2 * LH(10.5) + 1e-9, `mechanism ${i + 1} fits in two lines`));
+  const rowH = [Math.max(nh[0], nh[1]), Math.max(nh[2], nh[3])];
   NEW.forEach(([h, d], i) => {
-    const x = EX + (i % 2) * (cw + 0.3), yy = y + 0.33 + Math.floor(i / 2) * 0.44;
+    const r = Math.floor(i / 2), x = EX + (i % 2) * (cw + 0.25), yy = y + 0.36 + (r ? rowH[0] + 0.12 : 0);
     marker(s, i + 1, x, yy);
-    T(s, [run(h, { fontFace: F.head, color: C.ink }), run(d, { color: C.ink2 })], { x: x + 0.3, y: yy, w: cw - 0.3, h: 0.4, fontSize: 10.5 });
+    T(s, [run(h, { fontFace: F.head, color: C.ink }), run(d, { color: C.ink2 })], { x: x + 0.28, y: yy, w: nw, h: nh[i] + 0.04, fontSize: 10.5 });
   });
-  const newEnd = y + 0.33 + 0.44 + 0.38;
+  const newEnd = y + 0.36 + rowH[0] + 0.12 + rowH[1];
 
-  /* the pipeline spine, stretched to end level with the band */
+  /* relations legend under the graph; the status legend sits under the pipeline, where most status marks are */
+  const LY = newEnd + 0.22;
+  const legEnd = legend(s, EX, LY, [
+    { head: "Relations" },
+    { line: "same", text: "same as" }, { line: "variant", text: "variant of" },
+    { line: "includes", text: "includes" }, { line: "different", text: "different" },
+    { runs: [run("room in ink, ", { color: C.ink }), run("rate in orange", { color: C.signalText })] },
+  ]);
+  must(legEnd < SX - 0.15, "relations legend clears the pipeline column");
+  must(LY + 0.12 < 7.3, "slide 2 legend inside the slide");
+
+  /* the pipeline spine, stretched to end above the status legend */
   const STAGES = [
-    ["measured", "Ingest and profile.", "Each feed into one schema; each supplier's data quality profiled."],
-    ["measured", "Block.", `Geo cells and name neighbours keep ${pct(M.blocking_recall, 1)} of known matches (${M.candidates_per_record.toFixed(1)} per listing).`],
-    ["measured", "Score in a cascade.", "Key rules → small model (LightGBM) → cross-encoder → LLM → human."],
-    ["measured", "Cluster.", "Union-find with cannot-link constraints; stable IDs between runs: designed."],
-    ["simulated", "Split rate from room, map rooms.", "Board and refund terms leave the room name first."],
-    ["simulated", "Relate tours.", "Same as, variant of, includes or different, with the difference named."],
-    ["designed", "Golden record.", "Best value per field, with its source; duplicate images removed."],
-    ["designed", "Choose offers.", "Reliability-adjusted price: failure and price-change risk priced in."],
-    ["designed", "Rank listings.", "Canonical cards; position bias corrected (inverse-propensity LambdaMART)."],
+    ["measured", "Ingest and profile.", "One schema; each supplier's data quality profiled."],
+    ["measured", "Block.", `Geo cells and name neighbours; ${pct(M.blocking_recall, 1)} of known matches kept.`],
+    ["measured", "Score in a cascade.", "Key rules → LightGBM → cross-encoder → LLM → human."],
+    ["measured", "Cluster.", "Union-find with cannot-link constraints. Stable IDs: designed."],
+    ["simulated", "Split rate from room, map rooms.", "Board and refund terms come out first."],
+    ["simulated", "Relate tours.", "Same, variant, includes or different; the difference named."],
+    ["designed", "Golden record.", "Best value per field, with its source; images de-duplicated."],
+    ["designed", "Choose offers.", "Price adjusted for failure and price-change risk."],
+    ["designed", "Rank listings.", "LambdaMART, position bias corrected by inverse propensity."],
   ];
   const MARK = { 2: 4, 4: 2, 5: 1, 7: 3 }; // stage index -> marker number (stage 3's marker sits on the cascade bar)
   const TX = SX + 0.3, TWs = SXR - TX - 0.3, FS = 10.5;
-  const hs = STAGES.map(([, h, d], i) => nlines(`${i + 1}  ${h} ${d}`, TWs, FS, 0.43) * LH(FS));
+  const hs = STAGES.map(([, h, d], i) => nlines(`${i + 1}  ${h} ${d}`, TWs, FS) * LH(FS));
   const console_ = ["Review console and audit log, beside every stage. ", "Uncertain pairs queue for a person; every merge is logged and reversible."];
-  const conH = nlines(console_.join(""), SXR - TX, FS, 0.43) * LH(FS);
+  const conH = nlines(console_.join(""), SXR - TX, FS) * LH(FS);
+  const legTop = LY - 0.42 - 0.16; // hairline above the stacked status legend
   const BAR = 0.44, y0s = TOP + 0.36;
-  const content = hs.reduce((a, b) => a + b, 0) + BAR + 0.12 + conH;
-  const gap = Math.max(0.06, (newEnd - y0s - content) / 10);
+  const content = hs.reduce((a, b) => a + b, 0) + BAR + 0.07 + conH;
+  const gap = (legTop - 0.12 - y0s - content) / 10;
+  must(gap >= 0.06, `pipeline fits above the status legend (gap ${gap.toFixed(3)})`);
   // the spine line goes in first, so the status marks sit on top of it
   const gyPre = [];
   hs.reduce((t, h, i) => { gyPre.push(t); return t + h + gap + (i === 2 ? BAR : 0); }, y0s);
@@ -362,8 +420,8 @@ pres.addSection({ title: "Solution" });
       segs.forEach(([v, fill, tc, lab], k) => {
         const w = v * bw;
         s.addText(pct(v), { isTextBox: true, shape: S.RECTANGLE, x: cx, y: by, w, h: bh, fill: { color: fill }, line: { color: fill, width: 0 },
-          fontFace: F.head, fontSize: 10, color: tc, align: "center", valign: "middle", margin: 0, objectName: `Cascade: ${lab}` });
-        T(s, lab, { x: cx, y: by + bh + 0.02, w: k === 0 ? 0.8 : w, h: 0.18, fontSize: 10, color: C.ink2, align: k === 0 ? "left" : "center" });
+          fontFace: F.head, fontSize: 10, color: tc, align: "center", valign: "middle", margin: 0, wrap: false, objectName: `Cascade: ${lab}` });
+        T1(s, lab, { x: cx, y: by + bh + 0.02, w: k === 0 ? 0.8 : w, h: 0.18, fontSize: 10, color: C.ink2, align: k === 0 ? "left" : "center" });
         cx += w;
       });
       marker(s, 4, SXR - 0.22, by - 0.01);
@@ -375,16 +433,13 @@ pres.addSection({ title: "Solution" });
   glyph(s, SX, sy + 0.1, "designed", 0.15, "Review console status");
   T(s, [run(console_[0], { fontFace: F.head, color: C.ink }), run(console_[1], { color: C.ink2 })], { x: TX, y: sy + 0.07, w: SXR - TX, h: conH + 0.04, fontSize: FS });
 
-  /* one legend */
-  const LY = Math.max(newEnd, sy + 0.07 + conH) + 0.19;
-  legend(s, EX, LY, [
-    { head: "Relations", w: 0.8 },
-    { line: "same", text: "same as", w: 0.66 }, { line: "variant", text: "variant of", w: 0.8 },
-    { line: "includes", text: "includes", w: 0.68 }, { line: "different", text: "different", w: 0.82 },
-    { runs: [run("Attributes   ", { fontFace: F.head, color: C.ink }), run("room in ink, ", { color: C.ink }), run("rate in orange", { color: C.signalText })], w: 2.8 },
-  ]);
-  legend(s, EX, LY + 0.24, [{ head: "Status", w: 0.8 }, ...STATUS_LEGEND]);
-    must(LY + 0.34 < 7.3, "slide 2 legend inside the slide");
+  /* status legend, stacked under the pipeline, its last line level with the relations legend */
+  hline(s, SX, SXR, legTop, { color: C.hair }, "Status legend rule");
+  STATUS_LEGEND.forEach((p, k) => {
+    const yy = LY - 0.42 + k * 0.21;
+    glyph(s, SX, yy - 0.075, p.status, 0.15, `Legend ${p.status}`);
+    T1(s, p.text, { x: TX, y: yy - 0.1, w: SXR - TX, h: 0.2, fontSize: 10, color: C.ink2, valign: "middle" });
+  });
 
   s.addNotes(
     "[Video 0:22 to 1:54, tabs 2 to 4.] The statement asks for duplicates to be found without losing meaningful differences, so Canon's unit is a typed relation, not a merge. " +
@@ -404,9 +459,11 @@ pres.addSection({ title: "Evidence" });
 {
   const s = pres.addSlide({ masterName: "CANON_CONTENT", sectionTitle: "Evidence" });
   s.addText("It already runs on real data. TBO can start it in shadow mode.", { placeholder: "title" });
-  s.addText(`Four open sources stand in for supplier feeds: ${num(N.data.listings_total)} real listings in ${N.data.cities} cities. Each result names the truth it was measured against.`, { placeholder: "body" });
+  const dek = `Four open sources stand in for supplier feeds: ${num(N.data.listings_total)} real listings in ${N.data.cities} cities. Each result names the truth it was measured against.`;
+  fits(dek, 12.33, 12.5, 1, "slide 3 dek");
+  s.addText(dek, { placeholder: "body" });
 
-  const TOP = 1.18, LX = 0.5, LXR = 6.55, RX = 6.95, RXR = 12.83;
+  const TOP = 1.16, LX = 0.5, LXR = 6.3, RX = 6.7, RXR = 12.83;
   capLabel(s, "Matching on cities the model never saw", LX, TOP, 5.5);
   hline(s, LX, LXR, TOP + 0.24);
   capLabel(s, "What else is measured, and against what", RX, TOP, 5.5);
@@ -419,92 +476,102 @@ pres.addSection({ title: "Evidence" });
   must(cities.length === N.data.cities && cities.every(k => cityName[k]), "12 named cities in the fair comparison");
   const rows = cities.map(k => ({ k, name: cityName[k], r: FAIR[k].rule_recall, m: FAIR[k].model_recall_at_rule_precision }))
     .sort((a, b) => (b.m - b.r) - (a.m - a.r));
-  const PX0 = 1.62, PX1 = 6.2, X = v => PX0 + v * (PX1 - PX0);
-  T(s, "Share of true matches found in a city held out of training, at the rule's own precision", { x: LX, y: TOP + 0.31, w: LXR - LX, h: 0.22, fontSize: 10.5, color: C.ink2, valign: "middle" });
-  const y0 = TOP + 0.9, rp = 0.222;
+  const PX0 = 1.62, PX1 = 5.95, X = v => PX0 + v * (PX1 - PX0);
+  const sub = "Share of true matches found per held-out city, at the rule's own precision";
+  fits(sub, LXR - LX, 10.5, 1, "dumbbell subtitle");
+  T1(s, sub, { x: LX, y: TOP + 0.31, w: LXR - LX, h: 0.22, fontSize: 10.5, color: C.ink2, valign: "middle" });
+  const y0 = TOP + 0.9, rp = 0.215;
   const yEnd = y0 + (rows.length - 1) * rp, yAll = yEnd + 0.38;
   for (const g of [0, 0.25, 0.5, 0.75, 1]) {
     seg(s, X(g), y0 - 0.12, X(g), yAll + 0.15, { color: C.hair, width: 0.5 }, `Grid ${g * 100}%`);
-    T(s, g === 1 ? "100%" : String(g * 100), { x: X(g) - 0.3, y: yAll + 0.18, w: 0.6, h: 0.18, fontSize: 10, color: C.ink2, align: "center" });
+    T1(s, g === 1 ? "100%" : String(g * 100), { x: X(g) - 0.3, y: yAll + 0.18, w: 0.6, h: 0.18, fontSize: 10, color: C.ink2, align: "center" });
   }
   const drawRow = (r, cy, o = {}) => {
     const hi = o.hi, strong = o.strong, lc = hi ? C.signal : strong ? C.ink : C.ink3;
-    T(s, r.name, { x: LX, y: cy - 0.1, w: 1.25, h: 0.2, fontSize: 11, fontFace: strong || hi ? F.head : F.body, color: C.ink, valign: "middle" });
+    T1(s, r.name, { x: LX, y: cy - 0.1, w: 1.1, h: 0.2, fontSize: 11, fontFace: strong || hi ? F.head : F.body, color: C.ink, valign: "middle" });
     seg(s, X(r.r), cy, X(r.m), cy, { color: lc, width: hi || strong ? 2.5 : 1.5 }, `${r.name}: rule to model`);
     dot(s, X(r.r), cy, 0.06, C.ink, true, `${r.name}: rule`);
     dot(s, X(r.m), cy, 0.06, C.ink, false, `${r.name}: model`);
     const lo = { fontSize: 10.5, color: hi ? C.signalText : C.ink, fontFace: hi || strong ? F.head : F.body, valign: "middle" };
-    T(s, String(p0(r.r)), { x: X(r.r) - 0.43, y: cy - 0.1, w: 0.33, h: 0.2, align: "right", ...lo });
-    T(s, String(p0(r.m)), { x: X(r.m) + 0.1, y: cy - 0.1, w: 0.33, h: 0.2, align: "left", ...lo });
+    T1(s, String(p0(r.r)), { x: X(r.r) - 0.43, y: cy - 0.1, w: 0.33, h: 0.2, align: "right", ...lo });
+    T1(s, String(p0(r.m)), { x: X(r.m) + 0.1, y: cy - 0.1, w: 0.33, h: 0.2, align: "left", ...lo });
   };
+  must(Math.min(...rows.map(r => X(r.r))) - 0.45 > LX + tw("Amsterdam", 11), "dumbbell values clear the city names");
   rows.forEach((r, i) => drawRow(r, y0 + i * rp, { hi: r.k === "bangkok" }));
   // direct labels on the first row, in place of a key
   const r0 = rows[0];
-  T(s, "name + distance rule", { x: X(r0.r) - 0.8, y: y0 - 0.33, w: 1.6, h: 0.18, fontSize: 10, color: C.ink2, align: "center" });
-  T(s, "Canon's pair model", { x: X(r0.m) - 0.8, y: y0 - 0.33, w: 1.6, h: 0.18, fontSize: 10, color: C.ink2, align: "center" });
+  T1(s, "name + distance rule", { x: X(r0.r) - 0.8, y: y0 - 0.33, w: 1.6, h: 0.18, fontSize: 10, color: C.ink2, align: "center" });
+  T1(s, "Canon's pair model", { x: X(r0.m) - 0.8, y: y0 - 0.33, w: 1.6, h: 0.18, fontSize: 10, color: C.ink2, align: "center" });
+  must(X(r0.m) + tw("Canon's pair model", 10) / 2 < RX - 0.1, "direct label clears the table");
   hline(s, LX, LXR, yEnd + 0.19, { color: C.hair });
   drawRow({ name: "All 12 cities", r: ALL.rule_recall, m: ALL.model_recall_at_rule_precision }, yAll, { strong: true });
   const bk = FAIR.bangkok;
-  T(s, [run(`Bangkok, where names switch between Thai and Latin script: ${p0(bk.rule_recall)} → ${p0(bk.model_recall_at_rule_precision)}. `, { fontFace: F.head, color: C.signalText }),
-        run("Truth: keys the model never sees (a shared Wikidata ID, or a rare phone or URL nearby), not hand labels.", { color: C.ink2 })],
-    { x: LX, y: yAll + 0.42, w: LXR - LX, h: 0.5, fontSize: 10 });
+  const foot = [run(`Bangkok, where names switch between Thai and Latin script: ${p0(bk.rule_recall)} → ${p0(bk.model_recall_at_rule_precision)}. `, { fontFace: F.head, color: C.signalText }),
+    run("Truth: keys the model never sees (a shared Wikidata ID, or a rare phone or URL nearby), not hand labels.", { color: C.ink2 })];
+  const footH = nlines(plain(foot), LXR - LX, 10) * LH(10);
+  T(s, foot, { x: LX, y: yAll + 0.42, w: LXR - LX, h: footH + 0.04, fontSize: 10 });
 
   /* evidence table */
-  const cols = [{ x: RX + 0.26, w: 2.05, h: "Tested" }, { x: RX + 2.42, w: 2.05, h: "Result" }, { x: RX + 4.6, w: RXR - RX - 4.6, h: "Measured against" }];
-  cols.forEach(c => T(s, c.h, { x: c.x, y: TOP + 0.31, w: c.w, h: 0.2, fontSize: 10, color: C.ink2, valign: "middle" }));
+  const cols = [{ x: RX + 0.26, w: 2.1, h: "Tested", pt: 10.5 }, { x: RX + 2.48, w: 2.1, h: "Result", pt: 10.5 }, { x: RX + 4.68, w: RXR - RX - 4.68, h: "Measured against", pt: 10 }];
+  cols.forEach(c => T1(s, c.h, { x: c.x, y: TOP + 0.31, w: c.w, h: 0.2, fontSize: 10, color: C.ink2, valign: "middle" }));
   const EV = [
-    ["measured", "Candidate pairs settled by key rules and a small model", `${pct(cheap)} of ${(M.candidate_pairs / 1e6).toFixed(2)} million`, "12-city run"],
-    ["measured", `Public place-matching benchmark, ${Math.round(F2.records_per_world / 1000)}k records never trained on`,
-      `IoU ${F2.v2_best_iou.toFixed(3)}, level with the published 1st place (${F2.published_first_place_cv.with_post_processing.toFixed(3)}, their own CV); best rule ${F2.best_rule_iou.toFixed(2)}`,
+    ["measured", "Pairs settled by key rules and a small model", `${pct(cheap)} of ${(M.candidate_pairs / 1e6).toFixed(2)} million`, "12-city run"],
+    ["measured", `Place-matching benchmark, ${Math.round(F2.records_per_world / 1000)}k unseen records`,
+      `IoU ${F2.v2_best_iou.toFixed(3)}, level with the published 1st place (${F2.published_first_place_cv.with_post_processing.toFixed(3)} on their own CV); best rule ${F2.best_rule_iou.toFixed(2)}`,
       "Competition labels (Foursquare)"],
     ["measured", "Two real Indian OTA feeds, no retraining", `${num(N.ota_transfer.goibibo_with_twin)} hotels matched`, "No labels yet"],
-    ["simulated", `Renamed rooms mapped to the right room, ${num(N.rooms.hotels)} real hotels`, `${pct(N.rooms.parser_coverage)} vs ${pct(N.rooms.best_fuzzy_coverage)} for the best fuzzy matcher`, "Simulated second supplier"],
-    ["simulated", "Tour variants a plain deduplicator would merge away", `${pct(N.sightseeing.dedup_merges_variants)}; combos ${pct(N.sightseeing.dedup_merges_combos)}`, "Simulated second supplier"],
+    ["simulated", `Renamed rooms mapped right, ${num(N.rooms.hotels)} real hotels`, `${pct(N.rooms.parser_coverage)} vs ${pct(N.rooms.best_fuzzy_coverage)} for the best fuzzy matcher`, "Simulated second supplier"],
+    ["simulated", "Tour variants a plain deduplicator merges away", `${pct(N.sightseeing.dedup_merges_variants)}; combos ${pct(N.sightseeing.dedup_merges_combos)}`, "Simulated second supplier"],
     ["simulated", "Tour relations right, four types", `${pct(N.sightseeing.accuracy)} in-sample; ${pct(TH.rules_accuracy)} on new phrasings, ${pct(TH.cascade_accuracy)} with an open ${LLM_SIZE} LLM`, "Simulated second supplier"],
-    ["designed", "Offer choice and listing ranking", "Not measured yet", "Ranking data awaits a Kaggle rules acceptance"],
+    ["designed", "Offer choice and listing ranking", "Not measured yet", "Data awaits a Kaggle rules acceptance"],
   ];
   let ey = TOP + 0.58;
   hline(s, RX, RXR, ey - 0.04, { color: C.hair2 });
-  EV.forEach(([st, what, res, truth], i) => {
-    const nl = Math.max(nlines(what, cols[0].w, 10.5), nlines(res, cols[1].w, 10.5, 0.47), nlines(truth, cols[2].w, 10));
+  EV.forEach(([st, ...cells], i) => {
+    const nl = Math.max(...cells.map((t, k) => nlines(t, cols[k].w, cols[k].pt)));
     const h = nl * LH(10.5) + 0.1;
     glyph(s, RX, ey + 0.045, st, 0.15, `Evidence ${i + 1} status`);
-    T(s, what, { x: cols[0].x, y: ey + 0.02, w: cols[0].w, h: h - 0.06, fontSize: 10.5, color: C.ink });
-    T(s, res, { x: cols[1].x, y: ey + 0.02, w: cols[1].w, h: h - 0.06, fontSize: 10.5, fontFace: F.head, color: C.ink });
-    T(s, truth, { x: cols[2].x, y: ey + 0.02, w: cols[2].w, h: h - 0.06, fontSize: 10, color: C.ink2 });
+    cells.forEach((t, k) => T(s, t, { x: cols[k].x, y: ey + 0.02, w: cols[k].w, h: h - 0.06, fontSize: cols[k].pt,
+      fontFace: k === 1 ? F.head : F.body, color: k === 2 ? C.ink2 : C.ink }));
     ey += h;
     hline(s, RX, RXR, ey - 0.02, { color: C.hair });
   });
-  legend(s, RX, ey + 0.16, STATUS_LEGEND);
-  must(ey + 0.3 < 5.84, "evidence table and legend clear the bottom band");
+  const legEnd = legend(s, RX, ey + 0.16, STATUS_LEGEND);
+  must(legEnd < RXR + 0.05, "evidence legend fits under the table");
 
   /* impact, feasibility, adoption */
-  const BY = 5.9, bw = (12.33 - 0.6) / 3;
+  const BY = 5.9, bw = (12.33 - 0.5) / 3;
+  must(ey + 0.3 < BY - 0.1, "evidence table and legend clear the bottom band");
+  must(yAll + 0.42 + footH < BY - 0.1, "dumbbell footnote clears the bottom band");
   hline(s, 0.5, 12.83, BY - 0.08);
   const BLOCKS = [
     ["Impact for TBO", [
-      ["Fewer duplicate cards: ", `Dubai's ${num(M.dubai.lodging_listings)} listings become ${num(M.dubai.canonical_entities)} hotels, every supplier's offer kept underneath.`],
-      ["Like-for-like comparison: ", "rooms matched on room attributes; tour variants side by side, differences named."],
-      ["Cheapest reliable offer first: ", "fewer failed bookings. Less manual mapping: people see only unsettled pairs."],
+      ["Fewer duplicate cards: ", `Dubai's ${num(M.dubai.lodging_listings)} listings become ${num(M.dubai.canonical_entities)} hotels, every offer kept underneath.`],
+      ["Like-for-like comparison: ", "rooms matched on room attributes; tour variants side by side."],
+      ["Cheapest reliable offer first: ", "fewer failed bookings. People map only the unsettled pairs."],
     ]],
     ["Technical feasibility", [
-      ["Running code on a laptop CPU: ", `${num(N.data.listings_total)} real listings, ${N.data.sources} sources, ${N.data.cities} cities; GPU models see only the uncertain band.`],
-      ["Permissive open source: ", "DuckDB, LightGBM, rapidfuzz, XLM-RoBERTa, Qwen2.5 (MIT or Apache-2.0)."],
-      ["Established methods: ", "Fellegi–Sunter bands, union-find, OCTO's product model. Ours: the system, its framing and evaluation."],
+      ["Running code on a laptop CPU: ", `${num(N.data.listings_total)} real listings from ${N.data.sources} sources in ${N.data.cities} cities.`],
+      ["Permissive open source: ", "XLM-RoBERTa, Qwen2.5, DuckDB, LightGBM, rapidfuzz (MIT, Apache-2.0)."],
+      ["Credit: ", "Fellegi–Sunter bands, union-find, OCTO's product model. Ours: the system and its evaluation."],
     ]],
     ["Adoption risk, contained", [
-      ["Beside TBO's hotel-mapping vendor: ", "its IDs become one more input; disagreements go to review, never overridden."],
+      ["Beside TBO's hotel-mapping vendor: ", "its IDs become one more input; disagreements go to review."],
       ["Thresholds in configuration; ", "uncertain pairs in a review queue; every merge logged and reversible."],
       ["Shadow mode first, ", "then live one destination at a time, once its numbers hold."],
     ]],
   ];
   BLOCKS.forEach(([head, items], i) => {
-    const x = 0.5 + i * (bw + 0.3);
-    T(s, head, { x, y: BY, w: bw, h: 0.22, fontFace: F.head, fontSize: 12, color: C.ink, valign: "middle" });
+    const x = 0.5 + i * (bw + 0.25);
+    T1(s, head, { x, y: BY, w: bw, h: 0.22, fontFace: F.head, fontSize: 12, color: C.ink, valign: "middle" });
     const runs = [];
-    items.forEach(([a, b], k) => { runs.push(run(a, { fontFace: F.head, color: C.ink })); runs.push(run(b, { color: C.ink2, breakLine: k < items.length - 1 })); });
-    T(s, runs, { x, y: BY + 0.27, w: bw, h: 1.02, fontSize: 10.5, paraSpaceAfter: 2 });
+    items.forEach(([a, b], k) => {
+      fits(a + b, bw, 10.5, 2, `${head}, item ${k + 1}`);
+      runs.push(run(a, { fontFace: F.head, color: C.ink })); runs.push(run(b, { color: C.ink2, breakLine: k < items.length - 1 }));
+    });
+    T(s, runs, { x, y: BY + 0.27, w: bw, h: 1.04, fontSize: 10.5, paraSpaceAfter: 2 });
   });
+  must(BY + 0.27 + 6 * LH(10.5) + 4 / 72 < 7.3, "bottom band inside the slide");
 
   s.addNotes(
     `[Video 2:12 to 2:38, tab 6.] What is measured today: on cities the model never saw, it finds ${pct(ALL.model_recall_at_rule_precision)} of true matches where a name-and-distance rule finds ${pct(ALL.rule_recall)}, at the same precision. ` +
@@ -514,7 +581,7 @@ pres.addSection({ title: "Evidence" });
     `If asked, from the table: on the public Foursquare benchmark, ${Math.round(F2.records_per_world / 1000)}k records never trained on, IoU ${F2.v2_best_iou.toFixed(3)}, level with the published first place (${F2.published_first_place_cv.with_post_processing.toFixed(3)} on their own cross-validation; the splits differ, so never say "beat"). ` +
     `Rooms: ${pct(N.rooms.parser_coverage)} against ${pct(N.rooms.best_fuzzy_coverage)}, real room lists with a simulated second supplier. ` +
     `Tours: ${pct(N.sightseeing.accuracy)} is in-sample because the rules were tuned on those pairs; on phrasings written after the rules were frozen, rules score ${pct(TH.rules_accuracy)} and ${pct(TH.cascade_accuracy)} with an open ${LLM_SIZE} LLM added. ` +
-    `Two Indian OTA feeds: ${num(N.ota_transfer.goibibo_with_twin)} hotels matched with no retraining, no labels yet, so no precision is claimed. Offer choice and ranking are designed, not measured.`
+    `Two Indian OTA feeds: ${num(N.ota_transfer.goibibo_with_twin)} hotels matched with no retraining, no labels yet, so no precision is claimed. Offer choice and ranking are designed, not measured; the ranking benchmark data awaits a Kaggle rules acceptance.`
   );
 }
 
@@ -523,7 +590,7 @@ pres.addSection({ title: "Close" });
 {
   const s = pres.addSlide({ masterName: "CANON_CLOSE", sectionTitle: "Close" });
   s.addText("Thank you", { placeholder: "title" });
-  T(s, "What Round 2 adds, marked by where each part stands today", { x: 0.6, y: 1.85, w: 7.2, h: 0.35, fontSize: 18, color: C.ink });
+  T1(s, "What Round 2 adds, marked by where each part stands today", { x: 0.6, y: 1.85, w: 7.9, h: 0.35, fontSize: 18, color: C.ink });
   const NEXT = [
     ["designed", "Ranking on real hotel search logs, with position bias corrected"],
     ["designed", "Offer choice measured against a cheapest-price baseline"],
@@ -534,27 +601,30 @@ pres.addSection({ title: "Close" });
   hline(s, 0.6, 7.75, 2.38);
   NEXT.forEach(([st, t], i) => {
     const y = 2.55 + i * 0.46;
+    must(tw(t, 13) < 7.75 - 0.98, `Round 2 item ${i + 1} fits`);
     glyph(s, 0.6, y + 0.05, st, 0.17, `Round 2 item ${i + 1} status`);
-    T(s, t, { x: 0.98, y, w: 6.8, h: 0.28, fontSize: 13, color: C.ink });
+    T1(s, t, { x: 0.98, y, w: 6.8, h: 0.28, fontSize: 13, color: C.ink });
   });
   hline(s, 0.6, 7.75, 4.95, { color: C.hair });
-  T(s, [run("Code, demo and model reports   ", { fontFace: F.head }), run(LINK, { color: C.ink2 })], { x: 0.6, y: 5.12, w: 7.2, h: 0.3, fontSize: 14, objectName: "Link line" });
-  T(s, TEAM, { x: 0.6, y: 5.55, w: 7.2, h: 0.3, fontSize: 12, color: C.ink2, objectName: "Team line" });
-  legend(s, 0.6, 6.85, [{ head: "Status", w: 0.6 }, ...STATUS_LEGEND]);
+  const linkRuns = [run("Code, demo and model reports   ", { fontFace: F.head }), run(LINK, { color: C.ink2 })];
+  must(tw(plain(linkRuns), 14) < 8.2, "link line fits beside the inset");
+  T1(s, linkRuns, { x: 0.6, y: 5.12, w: 7.6, h: 0.3, fontSize: 14, objectName: "Link line" });
+  T1(s, TEAM, { x: 0.6, y: 5.55, w: 7.2, h: 0.3, fontSize: 12, color: C.ink2, objectName: "Team line" });
+  legend(s, 0.6, 6.85, [{ head: "Status" }, ...STATUS_LEGEND]);
 
   const img = path.join(R1, "figures", "demo_match_evidence_crop.png");
   if (fs.existsSync(img)) {
     const w = 3.9, h = w * 1212 / 918, x = 12.83 - w, y = 0.75;
     s.addImage({ path: img, x, y, w, h, altText: "Validation demo: the four listings of Atlantis, The Palm and, for each pair, distance, name similarity, score and what decided the merge" });
     s.addShape(S.RECTANGLE, { x, y, w, h, fill: { type: "none" }, line: { color: C.ink3, width: 0.75 }, objectName: "Inset frame" });
-    T(s, "From the validation demo, which runs offline from the repository: why the four Atlantis listings were merged.",
-      { x, y: y + h + 0.1, w, h: 0.4, fontSize: 10, color: C.ink2 });
+    const cap = "From the validation demo, which runs offline from the repository: why the four Atlantis listings were merged.";
+    T(s, cap, { x, y: y + h + 0.1, w, h: nlines(cap, w, 10) * LH(10) + 0.04, fontSize: 10, color: C.ink2 });
   }
   s.addNotes(
     "[Video 2:38 to 2:52.] Round two adds ranking on real search logs and a second real supplier for tours. Thank you. " +
     "Round 2 turns the designed and simulated parts into measured ones: ranking on the Expedia search logs once the Kaggle rules are accepted, offer choice against a cheapest-price baseline, " +
     "a second real supplier for rooms and tours, human labels for hotel matching, and the review console with the cost of each cascade stage measured. " +
-    "The inset is the validation demo's evidence table for the Atlantis merge. Before submitting, replace the link and team lines (or rebuild with CANON_LINK and CANON_TEAM)."
+    "The inset is the validation demo's evidence table for the Atlantis merge. The code, the demo and every model report are in the repository on the slide."
   );
 }
 

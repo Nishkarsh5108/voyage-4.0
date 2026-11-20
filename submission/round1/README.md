@@ -45,10 +45,10 @@ On the v3 deck the example details (pins within 22 m, name similarity 0.38, the 
 
 ## Before you submit
 
-1. **Pick the deck** (v3 or the first one) and **fill in its placeholders**: the team line (cover and thank-you) and the link line (thank-you).
-   Either edit them in PowerPoint, or rebuild. For v3, from `scripts\deck`:
-   `$env:CANON_TEAM = "Team X: A, B, C"; $env:CANON_LINK = "github.com/..."; node build_round1_deck_v3.js`, then
-   `powershell -ExecutionPolicy Bypass -File render.ps1 -Deck Canon_Round1_v3.pptx -Out qa_v3 -Pdf` to refresh the PNGs and the PDF.
+1. **Pick the deck** (v3 or the first one). v3 already carries the team line (Team Hent-AI: Nishkarsh Singhal, Hirak Biswas) and the
+   repository link (`github.com/Nishkarsh5108/voyage-4.0`); the first deck still has placeholders. To change either line on v3, from `scripts\deck`:
+   `$env:CANON_TEAM = "..."; $env:CANON_LINK = "..."; node build_round1_deck_v3.js`, then
+   `powershell -ExecutionPolicy Bypass -File render.ps1 -Deck Canon_Round1_v3.pptx -Out qa_v3 -Width 2000 -Height 1125 -Pdf` to refresh the PNGs and the PDF.
    (For the first deck: the same variables, `node build_round1_deck.js`.)
 2. **Record the video** from `VIDEO_SCRIPT.md`.
 3. **Check the submission format on Unstop** (zip or separate uploads, video length limit, file size). The 3.0 edition asked for a zip with the deck and video; 4.0's page should be read again.
@@ -70,7 +70,8 @@ powershell -ExecutionPolicy Bypass -File render.ps1 -Deck Canon_Round1_v3.pptx -
 
 The decks read every number from `numbers.json` (and v3 its example details from `demo/data.js`), so re-running the models and then these
 steps keeps slides, demo and script in step. The v3 generator stops with an error if an example no longer matches what the slide draws
-(for instance, if the Atlantis cluster loses a member) or if a block would run off the slide.
+(for instance, if the Atlantis cluster loses a member), if a block would run off the slide, or if any text would need more lines than
+its box holds at the widths of a substitute font (see the design notes).
 
 ## Design notes
 
@@ -87,8 +88,14 @@ v3 design, in short:
   Every judging criterion has a labelled place: "What is new" (slide 2), "Impact for TBO", "Technical feasibility", "Adoption risk, contained" (slide 3).
 - Status by form, one legend everywhere: solid = measured on real data, hatched = simulated second supplier, outline = designed, not yet measured.
   Four line styles for the four relations (solid same as, dashed variant of, arrow includes, dotted different); room attributes in ink, rate attributes in orange.
+  On slide 2 the legend is split by what it explains: relations under the graph, status stacked under the pipeline, where most status marks are.
 - Type: Franklin Gothic Medium / Book for headings and canonical values, Consolas for raw supplier strings, Arial for the Arabic name. All three
   ship with Office on Windows and Mac, so nothing needs embedding; the PDF covers any other viewer. Colours follow the website: paper `FBFAF7`,
   ink `15140F`, signal orange `FF4F00` (`C03A00` for orange text).
 - The hatching is drawn as three short diagonal line shapes in each mark, not a pattern fill: some viewers (Google Slides, web previews)
   draw pattern fills as solid, which would make "simulated" look like "measured".
+- Sized for viewers without the Office fonts. Google Slides, Keynote and most web previews have no Franklin Gothic or Consolas and
+  substitute Arial / Helvetica and Courier New / Menlo, which are wider. The generator measures every text with Arial's character widths
+  (plus 5%) and monospace at 0.6 em, so each box holds the substitute, and one-line labels are set not to wrap. Checked by rendering a copy
+  of the deck with those fonts swapped in: no text collides on any slide. In PowerPoint the slides show the real fonts, a little airier.
+  The PDF embeds the real fonts, so it looks the same everywhere.
