@@ -48,7 +48,7 @@ submission/round1/  deck, video script, figures, screens, numbers.json, README
 data/raw|interim|processed   (gitignored)
 ```
 
-## Status (last updated 14 Nov 2026, late morning)
+## Status (last updated 20 Nov 2026, 07:00; tonight's model work is under "Overnight ML upgrade" below)
 
 ### Phase 1 — data sources: DONE
 
@@ -85,8 +85,9 @@ Rebuild order from nothing: `scripts/download/*.py` → `scripts/download/wikida
 
 | Model | Script | Status | Result |
 |---|---|---|---|
-| A. Pair model on Foursquare LM | `kaggle/fsq_pair_model/train.py` (private Kaggle CPU kernel `canon-fsq-pair-model`, 22 min) | done → `reports/models/fsq_pair_model.md` | Unseen places: cluster IoU **0.878** vs 0.74-0.78 for rule baselines. Blocking caps the score at 0.959 |
-| B. Cross-source city matcher | `scripts/train/city_matcher.py` (local, ~8 min) | done → `reports/models/city_matcher.md` | Leave-one-city-out, weak labels: at the rule's precision the model finds **88 % of matches vs 58 %** for a name + distance rule (Bangkok 91 % vs 27 %); 61 % recall at 99 % precision; AUC 0.994 |
+| A. Pair model on Foursquare LM | `kaggle/fsq_pair_model/train.py` (private Kaggle CPU kernel `canon-fsq-pair-model`, 22 min) | done → `reports/models/fsq_pair_model.md` | Unseen places: cluster IoU **0.878** vs 0.74-0.78 for rule baselines. Blocking caps the score at 0.959 (20% world; at competition density this recipe scores 0.842) |
+| A2. Foursquare v2 (20 Nov) | `kaggle/fsq_v2/stage1.py` + `kaggle/fsq_v2_xenc/stage2.py` (Kaggle T4) | done → `reports/models/fsq_v2.md` | 570k-record held-out half: **IoU 0.9165** (GBDT stages 0.897); published 1st place 0.9166 (their CV) |
+| B. Cross-source city matcher | `scripts/train/city_matcher.py` (local, ~8 min); stage 2 `city_matcher_stage2.py`; stage 3 `kaggle/city_xenc` | done → `reports/models/city_matcher*.md` (stage 2/3: AP 0.976 -> 0.982 -> 0.983) | Leave-one-city-out, weak labels: at the rule's precision the model finds **88 % of matches vs 58 %** for a name + distance rule (Bangkok 91 % vs 27 %); 61 % recall at 99 % precision; AUC 0.994 |
 | B2. Transfer to two real OTA feeds | `scripts/train/ota_matcher.py` | done → `reports/models/ota_matcher.md` | No retraining: 546 accepted pairs, 484 Goibibo hotels with a MakeMyTrip twin. No labels yet |
 | C. Room / rate parser | `canon/rooms.py`, `scripts/train/rooms_benchmark.py` | done → `reports/models/rooms.md` | Simulated second supplier on 1,484 real hotels: **96 % of renamed rooms mapped** vs 60 % for the best fuzzy matcher |
 | D. Sightseeing typed relations | `canon/activities.py`, `scripts/train/activities_benchmark.py` | done, first pass → `reports/models/activities.md` | Simulated second supplier, in-sample: 96 % accuracy over four relations; a deduplicator merges 95 % of variants and 100 % of combos |
@@ -165,8 +166,10 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
 - [x] `kaggle/fsq_v2_xenc/stage2.py`: cross-encoder (xlm-roberta-base) re-ranks the uncertain band (0.01 <= p <= 0.99, ~8% of
       candidates), one direction per T4, then blend / stacker chosen on A. Kernel `canon-fsq-v2-xenc` pushed 02:47 (~2 h expected).
 - [x] `reports/models/fsq_v2.md` from `scripts/train/report_fsq_v2.py` (stage 1 results in; re-run it after the cross-encoder lands).
-- [ ] When `canon-fsq-v2-xenc` completes: `kaggle kernels output nishkarshsinghal/canon-fsq-v2-xenc -p kaggle/fsq_v2_xenc/output`, then
-      re-run `report_fsq_v2.py` and `v2_numbers.py`, commit `kaggle/fsq_v2_xenc/output/metrics_stage2.json` + report + numbers, push.
+- [x] `canon-fsq-v2-xenc` finished (125 min on two T4s; band = 10.5% of candidates, ~0.9M pairs per half). **IoU 0.8970 -> 0.9165 on
+      world B** (stack chosen on A; swap check 0.9183 on A). Cross-encoder AUC inside the band 0.948 vs 0.931 for the GBDT. Published 1st
+      place: 0.9166 with post-processing (their CV, different folds: "level with", not "beat"). Report, numbers.json and the v2 deck updated.
+      Only `metrics_stage2.json` was pulled (the full output is ~1.5 GB of pair files; pull with `--file-pattern` if needed).
 - [x] `scripts/train/city_matcher_stage2.py`: collective second stage for the 12-city matcher, strict nested leave-one-city-out
       (132 nested boosters, ~5 min locally). **Pooled AP 0.976 -> 0.982, recall at 99% precision 61.4% -> 69.8%, precision at 95%
       recall 88.8% -> 92.7%; AP up in 11 of 12 cities.** Dubai's recall at 99% precision drops (50% -> 3%): its top-scored "non-matches"

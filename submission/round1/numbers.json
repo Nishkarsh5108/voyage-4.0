@@ -275,6 +275,8 @@
    "with_post_processing": 0.9166,
    "retrieval_max_iou": 0.979
   },
-  "v2_best_iou": 0.8970499466357573
+  "v2_cross_encoder_iou": 0.9165312809463148,
+  "cross_encoder": "xlm-roberta-base",
+  "v2_best_iou": 0.9165312809463148
  }
 }

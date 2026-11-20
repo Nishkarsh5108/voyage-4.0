@@ -57,8 +57,8 @@ for name, iou, auc, _ in rows:
 L += [f"| Retrieval ceiling, every true candidate accepted, direct links only | {f4(rB['ceiling_list_iou_direct'])} | — |",
       f"| Retrieval ceiling, same, with transitive closure | {f4(rB['ceiling_cc_iou'])} | — |",
       f"| v1 retrieval ceiling at this density | {f4(rB['v1_ceiling_cc_iou'])} | — |", "",
-      "Same thresholds applied the other way round (picked on B, scored on A) as a stability check: stage 2 IoU "
-      f"{f4(s1['stage2']['swap']['list']['iou_A'])}.", "",
+      "Stability check, everything picked on B and scored on A: stage 2 IoU "
+      f"{f4(s1['stage2']['swap']['list']['iou_A'])}" + (f", with the cross-encoder {f4(s2[s2['chosen_on_A']]['swap']['list']['iou_A'])}." if s2 else ".") , "",
       "## Against the published state of the art", "",
       "The 2022 competition had 1,079 teams. Leaderboard scores are inflated by a train/test overlap that participants found during the competition (top teams "
       "exploited it), so the comparable figures are the winners' own cross-validation scores on the training data:", "",
@@ -66,9 +66,9 @@ L += [f"| Retrieval ceiling, every true candidate accepted, direct links only | 
       f"| Retrieval max IoU | {FSQ_FIRST_PLACE_CV['retrieval_max_iou']} (about 40 candidates per record) | {f4(rB['ceiling_list_iou_direct'])} direct candidates only, "
       f"{f4(rB['ceiling_cc_iou'])} with transitive closure ({rB['candidates_per_record']:.1f} candidate pairs per record) |",
       f"| GBDT stage | {FSQ_FIRST_PLACE_CV['lightgbm_stage']} (LightGBM, ~120 features) | {f4(s1['stage2']['list']['iou_B'])} (XGBoost, two stages) |",
-      f"| Transformer re-ranking | {FSQ_FIRST_PLACE_CV['transformer_ensemble']} (xlm-roberta-large + mdeberta-v3 + CatBoost) | "
-      + (f"{f4(s2[s2['chosen_on_A']]['list']['iou_B'])} ({s2['base_model']}, one model)" if s2 else "not run") + " |",
-      f"| With post-processing | {FSQ_FIRST_PLACE_CV['with_post_processing']} | (two-hop completion is included above) |", "",
+      f"| Transformer re-ranking, before post-processing | {FSQ_FIRST_PLACE_CV['transformer_ensemble']} (xlm-roberta-large + mdeberta-v3 + CatBoost) | not measured separately |",
+      f"| Final, with post-processing | {FSQ_FIRST_PLACE_CV['with_post_processing']} (merge rule + xlm-roberta-large on new pairs) | "
+      + (f"{f4(s2[s2['chosen_on_A']]['list']['iou_B'])} (one xlm-roberta-base cross-encoder, two-hop completion)" if s2 else "not run") + " |", "",
       "The CV splits are not identical (their folds, our 50/50 place split), so read the comparison as the same order of magnitude, not a ranking. "
       "Source: the 1st-place write-up (Kaggle discussion, team \"Re:waiwai\"), as reposted; the 7th-place write-up reports a 0.9778 retrieval ceiling.", "",
       "## Retrieval", "",
