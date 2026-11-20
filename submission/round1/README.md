@@ -46,8 +46,9 @@ On the v3 deck the example details (pins within 22 m, name similarity 0.38, the 
 ## Before you submit
 
 1. **Pick the deck** (v3 or the first one). v3 already carries the team line (Team Hent-AI: Nishkarsh Singhal, Hirak Biswas) and the
-   repository link (`github.com/Nishkarsh5108/voyage-4.0`); the first deck still has placeholders. To change either line on v3, from `scripts\deck`:
-   `$env:CANON_TEAM = "..."; $env:CANON_LINK = "..."; node build_round1_deck_v3.js`, then
+   repository link (`github.com/Nishkarsh5108/voyage-4.0`), plus the live website (`voyage-story-demo.vercel.app`); both links are clickable
+   in the PPTX and the PDF. The first deck still has placeholders. To change any of these lines on v3, from `scripts\deck`:
+   `$env:CANON_TEAM = "..."; $env:CANON_LINK = "..."; $env:CANON_SITE = "..."; node build_round1_deck_v3.js`, then
    `powershell -ExecutionPolicy Bypass -File render.ps1 -Deck Canon_Round1_v3.pptx -Out qa_v3 -Width 2000 -Height 1125 -Pdf` to refresh the PNGs and the PDF.
    (For the first deck: the same variables, `node build_round1_deck.js`.)
 2. **Record the video** from `VIDEO_SCRIPT.md`.

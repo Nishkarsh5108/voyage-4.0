@@ -28,6 +28,7 @@ const demoSrc = fs.readFileSync(path.join(ROOT, "demo", "data.js"), "utf8");
 const D = JSON.parse(demoSrc.slice(demoSrc.indexOf("=") + 1).trim().replace(/;\s*$/, ""));
 const TEAM = process.env.CANON_TEAM || "Team Hent-AI  ·  Nishkarsh Singhal, Hirak Biswas";
 const LINK = process.env.CANON_LINK || "github.com/Nishkarsh5108/voyage-4.0";
+const SITE = process.env.CANON_SITE || "voyage-story-demo.vercel.app";
 
 /* ------------------------------------------------------------------ data */
 const pct = (x, d = 0) => (x * 100).toFixed(d) + "%";
@@ -606,10 +607,15 @@ pres.addSection({ title: "Close" });
     T1(s, t, { x: 0.98, y, w: 6.8, h: 0.28, fontSize: 13, color: C.ink });
   });
   hline(s, 0.6, 7.75, 4.95, { color: C.hair });
-  const linkRuns = [run("Code, demo and model reports   ", { fontFace: F.head }), run(LINK, { color: C.ink2 })];
+  // both lines are real hyperlinks, so they stay clickable in the PowerPoint file and in the exported PDF
+  const href = u => (/^https?:\/\//.test(u) ? u : `https://${u}`);
+  const siteRuns = [run("Live site   ", { fontFace: F.head }), run(SITE, { color: C.signalText, hyperlink: { url: href(SITE), tooltip: "Open the Canon website" } })];
+  must(tw(plain(siteRuns), 14) < 8.2, "site line fits beside the inset");
+  T1(s, siteRuns, { x: 0.6, y: 5.1, w: 7.6, h: 0.3, fontSize: 14, objectName: "Site line" });
+  const linkRuns = [run("Code, demo and model reports   ", { fontFace: F.head }), run(LINK, { color: C.ink2, hyperlink: { url: href(LINK), tooltip: "Open the repository" } })];
   must(tw(plain(linkRuns), 14) < 8.2, "link line fits beside the inset");
-  T1(s, linkRuns, { x: 0.6, y: 5.12, w: 7.6, h: 0.3, fontSize: 14, objectName: "Link line" });
-  T1(s, TEAM, { x: 0.6, y: 5.55, w: 7.2, h: 0.3, fontSize: 12, color: C.ink2, objectName: "Team line" });
+  T1(s, linkRuns, { x: 0.6, y: 5.45, w: 7.6, h: 0.3, fontSize: 14, objectName: "Link line" });
+  T1(s, TEAM, { x: 0.6, y: 5.88, w: 7.2, h: 0.3, fontSize: 12, color: C.ink2, objectName: "Team line" });
   legend(s, 0.6, 6.85, [{ head: "Status" }, ...STATUS_LEGEND]);
 
   const img = path.join(R1, "figures", "demo_match_evidence_crop.png");
