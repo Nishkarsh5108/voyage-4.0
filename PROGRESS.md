@@ -48,7 +48,7 @@ submission/round1/  deck, video script, figures, screens, numbers.json, README
 data/raw|interim|processed   (gitignored)
 ```
 
-## Status (last updated 20 Nov 2026, 07:00; tonight's model work is under "Overnight ML upgrade" below)
+## Status (last updated 20 Nov 2026, 08:10; deck v3 under Phase 4; tonight's model work is under "Overnight ML upgrade" below)
 
 ### Phase 1 — data sources: DONE
 
@@ -65,7 +65,8 @@ Rebuild order from nothing: `scripts/download/*.py` → `scripts/download/wikida
    Someone must open https://www.kaggle.com/competitions/expedia-personalized-sort/rules and accept the rules with the account
    whose token is used. Then: `kaggle competitions download -c expedia-personalized-sort -f data.zip -p data/raw/expedia_icdm2013`.
    **The whole ranking track (LambdaMART, position-bias correction, duplicate collapsing) waits on this.**
-2. **Deck placeholders**: team name and members on the cover, repository link on the thank-you slide (see `submission/round1/README.md`).
+2. **Deck placeholders**: team name and members on the cover (and the v3 thank-you slide), repository link on the thank-you slide
+   (see `submission/round1/README.md`). The git remote is `github.com/Nishkarsh5108/voyage-4.0`; whether that is the link to show is the user's call.
 3. **Viator Basic Access / Hotelbeds evaluation keys** need a human sign-up. Product-level sightseeing data is the thinnest part of the data.
 4. **Human labels.** `data/processed/city_matcher/label_sheet.csv` holds 400 pairs to label (same / part-of or variant / different / unsure);
    `data/processed/ota_matcher/label_sheet.csv` holds 280 for the two OTA feeds. The `_key.csv` files hold buckets and model scores:
@@ -112,6 +113,17 @@ Things to know:
 The demo uses no map tile server: tile.openstreetmap.org blocks pages opened as local files and CARTO needs an API key, so the map is drawn
 from OSM data bundled in `demo/basemap.js` and Leaflet is vendored in `demo/vendor/`. Do not add a tile layer back.
 Every number in the deck is read from `numbers.json`; rebuild steps are in the package README.
+
+**Deck v3 (20 Nov, morning): `submission/round1/Canon_Round1_v3.pptx`** (+ `.pdf`, renders in `qa_v3/`), from `scripts/deck/build_round1_deck_v3.js`.
+Same content discipline, new look matching the website: paper-white, near-black ink, one signal orange; Franklin Gothic + Consolas (ship with
+Office on Windows and Mac). Slide 2 "It is not deduplication. It is a product graph.": the graph drawn with the three real examples (Atlantis in
+four sources and two scripts, `TWN PARTIAL SV HB NRF` split into room and rate, the Universal Studios family), the 9-stage pipeline as a spine
+with the cascade to scale, and "What is new" as four numbered mechanisms. Slide 3 "It already runs on real data. TBO can start it in shadow
+mode.": dumbbell of the 12 held-out cities, a table of everything else with its truth, then impact / feasibility / adoption. Status by form
+(solid / hatched / outline), one legend. It shows the 20 Nov results (Foursquare 0.917 level with 1st place; tours 74% -> 87% on new phrasings
+beside the in-sample 96%). Example details come from `demo/data.js`; the generator asserts they still match what is drawn and that no block runs
+off a slide. `render.ps1` now takes `-Deck`, `-Out`, `-Pdf` (run it with `-ExecutionPolicy Bypass`; the machine's policy blocks scripts).
+Speaker notes follow `VIDEO_SCRIPT.md`'s time codes; the script now points at slide 3 for its numbers. `Canon_Round1.pptx` is untouched.
 
 ### Phase 5 — public website: BUILT (19 Nov 2026)
 
@@ -206,9 +218,12 @@ train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, vi
 
 ## Next steps
 
-- [ ] User: fill the two deck placeholders, record the video from `VIDEO_SCRIPT.md`, check Unstop's upload format, submit by 20 Nov.
+- [ ] User: look at `Canon_Round1_v3.pptx` (renders in `submission/round1/qa_v3/`) and pick v3 or the first deck. Once v3 is chosen,
+      it may replace `Canon_Round1.pptx` (not done: the user asked to see it first).
+- [ ] User: fill the deck placeholders (team line, repository link; `CANON_TEAM` / `CANON_LINK`), record the video from `VIDEO_SCRIPT.md`,
+      check Unstop's upload format, submit by 20 Nov 11:59 PM IST.
 - [ ] User: accept the Expedia rules on Kaggle. Then model F: Expedia EDA, LambdaMART vs inverse-propensity-weighted, NDCG@5 on the
-      random-order slice, duplicate injection. If it lands before the 20th, add one number to slide 2 and the script.
+      random-order slice, duplicate injection. If it lands before the 20th, add one number to slide 3 (v3 deck) and the script.
 - [ ] Label the 400-pair sheet, then report model B against human labels and re-pick the accept threshold.
 - [ ] Model A v2 on Kaggle: more blocking generators to lift the 0.959 ceiling; then a cross-encoder for the uncertain band (GPU).
 - [ ] Model D on a second real supplier (Viator Basic Access) and a held-out set.
