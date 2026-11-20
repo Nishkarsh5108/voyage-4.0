@@ -13,6 +13,7 @@ Research for the team, 4 November 2026. Start here; each section links to the de
 4. **Inventory is not "forecast, then knapsack".** Demand is censored by sell-outs, searches are mostly machine traffic, sell-outs must be measured across all suppliers, and inventory comes as contracts with release options.
    The proposal is a two-stage stochastic MILP that chooses contract types, quantities, prices and supplier integrations with CVaR in the objective. → [`03-inventory-optimization.md`](03-inventory-optimization.md)
 5. **The two statements share one foundation**: a canonical inventory graph. Demand and sell-outs only make sense on the real hotel, not on one supplier's listing. Say this in the pitch whichever statement you pick.
+7. **Market gap (20 Nov update).** Hotel mapping, room mapping and rebooking are established vendor products (Vervotech, GIATA, Gimmonix, Cupid). Nobody we found sells cross-supplier matching for tours and activities that keeps variants apart, or that spots one operator's product arriving through several suppliers. Canon should lead with that. → [`06-market-gap.md`](06-market-gap.md)
 6. **Academic access that is clearly better than the open alternatives:** STR SHARE Center (hotel market performance), Trivago RecSys 2019 (listing-page logs), OpenSky (flight activity), PredictHQ via Dewey (events), HotelRec and UCSD Google Local (reviews and POIs). Apply this week if anyone is eligible.
 
 ## Recommendation: pick Multi-Supplier Optimization
