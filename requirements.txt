@@ -1,0 +1,11 @@
+# Canon: the library (canon/), the local website server (web/serve.py) and the matcher training scripts.
+# Python 3.12. Versions are the ones the trained model was built and checked with: the saved featurizer is a
+# pickled scikit-learn object, so keep scikit-learn at this version to load it.
+numpy==2.5.4
+pandas==3.1.1
+pyarrow==26.0.1
+scikit-learn==1.9.1
+lightgbm==4.7.0
+rapidfuzz==3.14.6
+joblib==1.6.0
+shapely==2.2.0

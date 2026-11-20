@@ -1,4 +1,4 @@
-"""Export real pipeline outputs into one JavaScript data file for the validation demo (demo/index.html).
+"""Export real pipeline outputs into one JavaScript data file for the validation demo (submission/round1/demo/index.html).
 
 What is real and what is simulated in the bundle:
   real       listings, names, coordinates, clusters, pair scores, key evidence (Dubai, four open sources);
@@ -7,7 +7,7 @@ What is real and what is simulated in the bundle:
 The demo page labels the simulated parts on screen.
 
 Input : data/processed/city_matcher/*, data/interim/*, reports/models/*.json, kaggle/fsq_pair_model/output/metrics.json
-Output: demo/data.js  (window.DEMO = {...})
+Output: submission/round1/demo/data.js  (window.DEMO = {...})
 Usage : python -I scripts/demo/build_demo_data.py
 """
 import hashlib
@@ -210,7 +210,7 @@ evidence = {
 }
 
 DEMO = {"matching": matching, "offers": offers, "rooms": rooms, "activities": activities, "evidence": evidence, "sources": SRC_LABEL}
-out = ROOT / "demo" / "data.js"
+out = ROOT / "submission" / "round1" / "demo" / "data.js"
 out.parent.mkdir(exist_ok=True)
 out.write_text("window.DEMO = " + json.dumps(DEMO, ensure_ascii=False, separators=(",", ":")) + ";\n", encoding="utf-8")
 print(f"wrote {out} ({out.stat().st_size / 1e3:.0f} kB): {len(clusters)} clusters, {len(listing)} listing cards, {len(rooms)} hotels, "

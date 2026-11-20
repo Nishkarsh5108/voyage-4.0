@@ -210,5 +210,73 @@
   "macro_f1": 0.9643443411625751,
   "dedup_merges_variants": 0.9540229885057471,
   "dedup_merges_combos": 1.0
+ },
+ "matching_stage2": {
+  "truth": "same weak labels and leave-one-city-out protocol as matching; nested so stage 2 never sees the held-out city",
+  "auc": [
+   0.994396741046379,
+   0.9956688259612712
+  ],
+  "average_precision": [
+   0.9760572865532292,
+   0.9824265720676245
+  ],
+  "recall_at_99_precision": [
+   0.6136308414999595,
+   0.6982262897869927
+  ],
+  "precision_at_95_recall": [
+   0.8880981223500909,
+   0.9274193548387096
+  ],
+  "cities_with_higher_ap": 11,
+  "cities": 12,
+  "stage3_model": "xlm-roberta-base",
+  "stage3_average_precision": 0.9833355717582456,
+  "stage3_auc": 0.9959842297813969,
+  "stage3_precision_at_95_recall": 0.9351084183673469,
+  "stage3_recall_at_99_precision": 0.6883858427148295
+ },
+ "rooms_semantic": {
+  "truth": "same simulated second supplier as rooms; thresholds on 20% of hotels, scores on the other 80%",
+  "parser_correct": 0.9587840173852916,
+  "parser_precision": 0.9998969842128306,
+  "embedding_correct": 0.8066627154640194,
+  "embedding_precision": 0.990328644191123,
+  "cascade_correct": 0.9984442139576234,
+  "cascade_precision": 0.9984442139576234
+ },
+ "sightseeing_heldout": {
+  "truth": "same real products; second supplier simulated with templates written after the rules were frozen",
+  "pairs": 783,
+  "rules_accuracy": 0.7420178799489144,
+  "rules_macro_f1": 0.7423214686281435,
+  "llm": "Qwen/Qwen2.5-7B-Instruct",
+  "llm_accuracy": 0.8735632183908046,
+  "llm_macro_f1": 0.8771034413844259,
+  "cascade_accuracy": 0.8722860791826309,
+  "cascade_macro_f1": 0.875528801908568
+ },
+ "fsq_v2": {
+  "truth": "competition labels (research only); places split 50/50, thresholds picked on world A, scores on world B",
+  "records_per_world": 570024,
+  "candidates_per_record": 14.876050832947385,
+  "retrieval_ceiling_iou": 0.9941053089858272,
+  "retrieval_ceiling_direct_iou": 0.9826113866530255,
+  "v1_retrieval_ceiling_iou": 0.940736593219365,
+  "v1_recipe_iou": 0.841978274515438,
+  "v2_pair_model_iou": 0.887431676229842,
+  "v2_collective_iou": 0.8970499466357573,
+  "v2_collective_auc": 0.9920836835722825,
+  "best_rule_iou": 0.7598068285136197,
+  "published_first_place_cv": {
+   "lightgbm_stage": 0.875,
+   "transformer_ensemble": 0.911,
+   "with_post_processing": 0.9166,
+   "retrieval_max_iou": 0.979
+  },
+  "v2_cross_encoder_iou": 0.9165312809463148,
+  "cross_encoder": "xlm-roberta-base",
+  "v2_best_iou": 0.9165312809463148
  }
 }

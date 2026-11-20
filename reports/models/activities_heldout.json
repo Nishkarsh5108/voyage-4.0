@@ -1,0 +1,60 @@
+{
+ "pairs": 783,
+ "products": 87,
+ "accuracy": 0.7420178799489144,
+ "macro_f1": 0.7423214686281435,
+ "per_relation": {
+  "SAME_AS": {
+   "precision": 0.9532710280373832,
+   "recall": 0.5862068965517241,
+   "f1": 0.7259786476868326,
+   "n": 174
+  },
+  "VARIANT_OF": {
+   "precision": 0.815028901734104,
+   "recall": 0.5402298850574713,
+   "f1": 0.6497695852534563,
+   "n": 261
+  },
+  "INCLUDES": {
+   "precision": 0.7420814479638009,
+   "recall": 0.9425287356321839,
+   "f1": 0.830379746835443,
+   "n": 174
+  },
+  "DIFFERENT": {
+   "precision": 0.6170212765957447,
+   "recall": 1.0,
+   "f1": 0.763157894736842,
+   "n": 174
+  }
+ },
+ "confusion": {
+  "SAME_AS->SAME_AS": 102,
+  "VARIANT_OF->VARIANT_OF": 141,
+  "VARIANT_OF->DIFFERENT": 88,
+  "INCLUDES->INCLUDES": 164,
+  "DIFFERENT->DIFFERENT": 174,
+  "SAME_AS->VARIANT_OF": 30,
+  "SAME_AS->DIFFERENT": 15,
+  "VARIANT_OF->SAME_AS": 2,
+  "INCLUDES->SAME_AS": 3,
+  "SAME_AS->INCLUDES": 27,
+  "VARIANT_OF->INCLUDES": 30,
+  "INCLUDES->DIFFERENT": 5,
+  "INCLUDES->VARIANT_OF": 2
+ },
+ "by_template": {
+  "DIFFERENT/other": 1.0,
+  "INCLUDES/combo": 0.9425287356321839,
+  "SAME_AS/rename": 0.5862068965517241,
+  "VARIANT_OF/child": 0.7692307692307693,
+  "VARIANT_OF/guide": 0.06060606060606061,
+  "VARIANT_OF/meal": 0.8095238095238095,
+  "VARIANT_OF/private": 0.0,
+  "VARIANT_OF/senior": 0.8157894736842105,
+  "VARIANT_OF/skip_the_line": 0.6666666666666666,
+  "VARIANT_OF/time": 0.7,
+  "VARIANT_OF/transfer": 0.6060606060606061
+ }
+}

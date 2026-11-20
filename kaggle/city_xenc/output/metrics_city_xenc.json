@@ -1,0 +1,160 @@
+{
+ "base_model": "xlm-roberta-base",
+ "folds": [
+  [
+   "dubai",
+   "delhi",
+   "london",
+   "barcelona"
+  ],
+  [
+   "bangkok",
+   "mumbai",
+   "paris",
+   "vienna"
+  ],
+  [
+   "singapore",
+   "goa",
+   "amsterdam",
+   "milan"
+  ]
+ ],
+ "pairs": 158228,
+ "pooled": {
+  "stage 1 (pair model)": {
+   "auc": 0.994396741046379,
+   "ap": 0.9760572865532293,
+   "recall@p0.99": 0.6136308414999595,
+   "recall@p0.995": 0.4970843119786183,
+   "precision@r0.95": 0.8880981223500909
+  },
+  "stage 2 (+ collective)": {
+   "auc": 0.9956688259612712,
+   "ap": 0.9824265720676244,
+   "recall@p0.99": 0.6982262897869927,
+   "recall@p0.995": 0.526727140195999,
+   "precision@r0.95": 0.9274193548387096
+  },
+  "cross-encoder alone": {
+   "auc": 0.9942964888422013,
+   "ap": 0.9753030134481175,
+   "recall@p0.99": 0.5129586134283631,
+   "recall@p0.995": 0.25018223050133637,
+   "precision@r0.95": 0.9040810821226252
+  },
+  "stage 3 (stage 2 + cross-encoder)": {
+   "auc": 0.9959842297813969,
+   "ap": 0.9833355717582456,
+   "recall@p0.99": 0.6883858427148295,
+   "recall@p0.995": 0.5137685267676358,
+   "precision@r0.95": 0.9351084183673469
+  }
+ },
+ "band": {
+  "stage 1 (pair model)": {
+   "auc": 0.9549674454325818,
+   "ap": 0.9457418446691574,
+   "recall@p0.99": 0.11981156098803157,
+   "recall@p0.995": 0.0920550038197097,
+   "precision@r0.95": 0.7836475345271229
+  },
+  "stage 2 (+ collective)": {
+   "auc": 0.9687484833195192,
+   "ap": 0.9613294008767868,
+   "recall@p0.99": 0.18996689584924878,
+   "recall@p0.995": 0.10784313725490197,
+   "precision@r0.95": 0.8492971373285527
+  },
+  "cross-encoder alone": {
+   "auc": 0.962908965821497,
+   "ap": 0.9513819298886041,
+   "recall@p0.99": 0.02820218996689585,
+   "recall@p0.995": 0.02540106951871658,
+   "precision@r0.95": 0.823928886925795
+  },
+  "stage 3 (stage 2 + cross-encoder)": {
+   "auc": 0.9723095616906698,
+   "ap": 0.9634428150499874,
+   "recall@p0.99": 0.09956709956709957,
+   "recall@p0.995": 0.0,
+   "precision@r0.95": 0.8724859681945744
+  }
+ },
+ "band_pairs": 35011,
+ "per_city": {
+  "amsterdam": {
+   "stage 1 (pair model)": 0.9837970305475783,
+   "stage 2 (+ collective)": 0.9867936552451474,
+   "cross-encoder alone": 0.9828983243355279,
+   "stage 3 (stage 2 + cross-encoder)": 0.9876619590127751
+  },
+  "bangkok": {
+   "stage 1 (pair model)": 0.9791913959699355,
+   "stage 2 (+ collective)": 0.9837604909234353,
+   "cross-encoder alone": 0.9809355175404395,
+   "stage 3 (stage 2 + cross-encoder)": 0.9864694977881848
+  },
+  "barcelona": {
+   "stage 1 (pair model)": 0.963656573753316,
+   "stage 2 (+ collective)": 0.9725378821326554,
+   "cross-encoder alone": 0.964656217586609,
+   "stage 3 (stage 2 + cross-encoder)": 0.975156719993603
+  },
+  "delhi": {
+   "stage 1 (pair model)": 0.9629144219967395,
+   "stage 2 (+ collective)": 0.9664966484900196,
+   "cross-encoder alone": 0.9462770245957077,
+   "stage 3 (stage 2 + cross-encoder)": 0.9651735025039364
+  },
+  "dubai": {
+   "stage 1 (pair model)": 0.9660819815212631,
+   "stage 2 (+ collective)": 0.9644659962173115,
+   "cross-encoder alone": 0.9654513252840523,
+   "stage 3 (stage 2 + cross-encoder)": 0.9759693543747495
+  },
+  "goa": {
+   "stage 1 (pair model)": 0.9565544101142665,
+   "stage 2 (+ collective)": 0.9697538655548366,
+   "cross-encoder alone": 0.9558348126628573,
+   "stage 3 (stage 2 + cross-encoder)": 0.9717866005543564
+  },
+  "london": {
+   "stage 1 (pair model)": 0.9802049743363669,
+   "stage 2 (+ collective)": 0.9869127441250665,
+   "cross-encoder alone": 0.9811972230107334,
+   "stage 3 (stage 2 + cross-encoder)": 0.9872769166623526
+  },
+  "milan": {
+   "stage 1 (pair model)": 0.9712207190746774,
+   "stage 2 (+ collective)": 0.978084061231873,
+   "cross-encoder alone": 0.9679900757426505,
+   "stage 3 (stage 2 + cross-encoder)": 0.9781053438855252
+  },
+  "mumbai": {
+   "stage 1 (pair model)": 0.9747406330714664,
+   "stage 2 (+ collective)": 0.9777064332645959,
+   "cross-encoder alone": 0.9764515132104911,
+   "stage 3 (stage 2 + cross-encoder)": 0.9820784058170212
+  },
+  "paris": {
+   "stage 1 (pair model)": 0.9809489158790636,
+   "stage 2 (+ collective)": 0.9865707310813299,
+   "cross-encoder alone": 0.976197721349501,
+   "stage 3 (stage 2 + cross-encoder)": 0.987189503304322
+  },
+  "singapore": {
+   "stage 1 (pair model)": 0.9795804045662444,
+   "stage 2 (+ collective)": 0.9823108606026435,
+   "cross-encoder alone": 0.9807829795282942,
+   "stage 3 (stage 2 + cross-encoder)": 0.9851100274865924
+  },
+  "vienna": {
+   "stage 1 (pair model)": 0.968488343475658,
+   "stage 2 (+ collective)": 0.9785205290192992,
+   "cross-encoder alone": 0.9716006348508718,
+   "stage 3 (stage 2 + cross-encoder)": 0.9827682915018273
+  }
+ },
+ "seconds": 2037.8306138515472
+}

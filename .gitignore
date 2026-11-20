@@ -8,7 +8,7 @@ node_modules/
 
 # kaggle kernel outputs pulled back for inspection: keep the small metrics file the reports read, drop models and logs
 kaggle/*/output/*
-!kaggle/*/output/metrics.json
+!kaggle/*/output/metrics*.json
 
 # model binaries
 *.lgb
@@ -19,3 +19,6 @@ kaggle/*/output/*
 
 # slide renders used only for visual checks
 submission/round1/qa/
+
+# the website ships its story data (built from data/processed by web/build_site_data.py), like submission/round1/demo/data.js
+!web/static/data/

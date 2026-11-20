@@ -189,6 +189,10 @@ numbers = {
     "sightseeing": {"truth": "real Klook Singapore products; second supplier simulated; in-sample", "products": acts["products"], "pairs": acts["synthetic_pairs"],
                     "accuracy": acts["accuracy"], "macro_f1": acts["macro_f1"], "dedup_merges_variants": dd["VARIANT_OF"], "dedup_merges_combos": dd["INCLUDES"]},
 }
+sys.path.insert(0, str(ROOT / "scripts" / "figures"))
+from v2_numbers import add_v2  # noqa: E402  (20 Nov upgrades, new keys only)
+
+numbers = add_v2(numbers)
 (ROOT / "submission" / "round1" / "numbers.json").write_text(json.dumps(numbers, indent=1), encoding="utf-8")
 
 # crop of the demo's Match tab (map + evidence panel) for the cover slide; needs scripts/demo/screenshots.ps1 to have run
@@ -198,4 +202,6 @@ if scr.exists():
     im = Image.open(scr)
     k = im.size[0] / 1600  # screenshots are taken at 1600 px wide times a device scale factor
     im.crop(tuple(int(v * k) for v in (78, 345, 1522, 965))).save(OUT / "demo_match_crop.png")
+    # the evidence panel alone (Atlantis, The Palm: listings and why they were merged), inset on the v3 deck's thank-you slide
+    im.crop(tuple(int(v * k) for v in (1056, 350, 1515, 956))).save(OUT / "demo_match_evidence_crop.png", optimize=True)
 print("figures:", sorted(p.name for p in OUT.glob("*.png")))

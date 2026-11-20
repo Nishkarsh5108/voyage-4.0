@@ -1,4 +1,4 @@
-# Render each tab of demo/index.html to a PNG with headless Edge (for slide figures and for checking the page).
+# Render each tab of submission/round1/demo/index.html to a PNG with headless Edge (for slide figures and for checking the page).
 # Usage: powershell -File scripts\demo\screenshots.ps1 [-Width 1600] [-Height 1000]
 param([int]$Width = 1600, [int]$Height = 1000, [int]$Scale = 2, [string[]]$Tabs = @('mess', 'mess-canon', 'match', 'rooms', 'acts', 'offer', 'proof'))
 
@@ -8,7 +8,7 @@ $edge = @("C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", "C:\Pr
 if (-not $edge) { Write-Output "Edge not found"; exit 1 }
 $outDir = Join-Path $root "submission\round1\screens"
 New-Item -ItemType Directory -Force $outDir | Out-Null
-$base = "file:///" + ((Join-Path $root "demo\index.html") -replace '\\', '/')
+$base = "file:///" + ((Join-Path $root "submissionound1\demo\index.html") -replace '\\', '/')
 $profile = Join-Path $env:TEMP "edge_headless_canon"
 foreach ($t in $Tabs) {
     $out = Join-Path $outDir "$t.png"

@@ -1,13 +1,18 @@
-# Export every slide of the Round 1 deck to PNG with PowerPoint (for a visual check). Needs PowerPoint installed.
-# Usage: powershell -File scripts\deck\render.ps1
+# Export every slide of a Round 1 deck to PNG with PowerPoint (for a visual check), and optionally to PDF. Needs PowerPoint installed.
+# Usage: powershell -File scripts\deck\render.ps1                                   (Canon_Round1.pptx -> submission\round1\qa)
+#        powershell -File scripts\deck\render.ps1 -Deck Canon_Round1_v3.pptx -Out qa_v3 -Pdf
+# -Deck and -Out are relative to submission\round1 unless absolute. -Pdf also writes <deck>.pdf next to the deck.
+param([string]$Deck = "Canon_Round1.pptx", [string]$Out = "qa", [int]$Width = 1600, [int]$Height = 900, [switch]$Pdf)
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$deck = Join-Path $root "submission\round1\Canon_Round1.pptx"
-$qa = Join-Path $root "submission\round1\qa"
-New-Item -ItemType Directory -Force $qa | Out-Null
-Get-ChildItem $qa -Filter *.PNG -ErrorAction SilentlyContinue | Remove-Item
+$r1 = Join-Path $root "submission\round1"
+if (-not [System.IO.Path]::IsPathRooted($Deck)) { $Deck = Join-Path $r1 $Deck }
+if (-not [System.IO.Path]::IsPathRooted($Out)) { $Out = Join-Path $r1 $Out }
+New-Item -ItemType Directory -Force $Out | Out-Null
+Get-ChildItem $Out -Filter *.PNG -ErrorAction SilentlyContinue | Remove-Item
 $pp = New-Object -ComObject PowerPoint.Application
-$p = $pp.Presentations.Open($deck, $true, $false, $false)
-$p.Export($qa, "PNG", 1600, 900)
+$p = $pp.Presentations.Open($Deck, $true, $false, $false)
+$p.Export($Out, "PNG", $Width, $Height)
+if ($Pdf) { $p.SaveAs([System.IO.Path]::ChangeExtension($Deck, ".pdf"), 32) }   # 32 = ppSaveAsPDF
 $p.Close()
 $pp.Quit()
-Get-ChildItem $qa | ForEach-Object { Write-Output ("{0}  {1:N0} bytes" -f $_.Name, $_.Length) }
+Get-ChildItem $Out | ForEach-Object { Write-Output ("{0}  {1:N0} bytes" -f $_.Name, $_.Length) }

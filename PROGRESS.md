@@ -38,17 +38,17 @@ scripts/download/   one script per source (re-runnable, skips what exists)
 scripts/build/      build_listings.py (canonical listing table), embed_names.py (multilingual name vectors, GPU, experiment only)
 scripts/eda/        EDA scripts -> reports/eda/<name>.md + .json + figures; common.py holds the chart style
 scripts/train/      city_matcher.py, ota_matcher.py, rooms_benchmark.py, activities_benchmark.py, report_fsq.py
-scripts/demo/       build_demo_data.py (-> demo/data.js), build_basemap.py (-> demo/basemap.js, offline map), screenshots.ps1 (-> submission/round1/screens)
+scripts/demo/       build_demo_data.py (-> submission/round1/demo/data.js), build_basemap.py (-> submission/round1/demo/basemap.js, offline map), screenshots.ps1 (-> submission/round1/screens)
 scripts/figures/    round1_figures.py (-> submission/round1/figures + numbers.json)
 scripts/deck/       build_round1_deck.js (pptxgenjs), render.ps1
 kaggle/             kernel folders pushed with `kaggle kernels push -p kaggle/<name>`
-demo/               index.html + data.js: the validation demo to screen-record
+submission/round1/demo/  index.html + data.js: the Round 1 validation demo to screen-record (moved here from demo/ on 20 Nov)
 reports/            data-sources.md, eda/, models/
 submission/round1/  deck, video script, figures, screens, numbers.json, README
 data/raw|interim|processed   (gitignored)
 ```
 
-## Status (last updated 14 Nov 2026, late morning)
+## Status (last updated 20 Nov 2026, 10:45; deck v3 under Phase 4; tonight's model work is under "Overnight ML upgrade" below)
 
 ### Phase 1 — data sources: DONE
 
@@ -65,7 +65,8 @@ Rebuild order from nothing: `scripts/download/*.py` → `scripts/download/wikida
    Someone must open https://www.kaggle.com/competitions/expedia-personalized-sort/rules and accept the rules with the account
    whose token is used. Then: `kaggle competitions download -c expedia-personalized-sort -f data.zip -p data/raw/expedia_icdm2013`.
    **The whole ranking track (LambdaMART, position-bias correction, duplicate collapsing) waits on this.**
-2. **Deck placeholders**: team name and members on the cover, repository link on the thank-you slide (see `submission/round1/README.md`).
+2. ~~Deck placeholders~~ Done on v3 (20 Nov): Team Hent-AI, Nishkarsh Singhal and Hirak Biswas; link `github.com/Nishkarsh5108/voyage-4.0`
+   (the user's choice). They are the generator's defaults now; `CANON_TEAM` / `CANON_LINK` still override them.
 3. **Viator Basic Access / Hotelbeds evaluation keys** need a human sign-up. Product-level sightseeing data is the thinnest part of the data.
 4. **Human labels.** `data/processed/city_matcher/label_sheet.csv` holds 400 pairs to label (same / part-of or variant / different / unsure);
    `data/processed/ota_matcher/label_sheet.csv` holds 280 for the two OTA feeds. The `_key.csv` files hold buckets and model scores:
@@ -85,12 +86,13 @@ Rebuild order from nothing: `scripts/download/*.py` → `scripts/download/wikida
 
 | Model | Script | Status | Result |
 |---|---|---|---|
-| A. Pair model on Foursquare LM | `kaggle/fsq_pair_model/train.py` (private Kaggle CPU kernel `canon-fsq-pair-model`, 22 min) | done → `reports/models/fsq_pair_model.md` | Unseen places: cluster IoU **0.878** vs 0.74-0.78 for rule baselines. Blocking caps the score at 0.959 |
-| B. Cross-source city matcher | `scripts/train/city_matcher.py` (local, ~8 min) | done → `reports/models/city_matcher.md` | Leave-one-city-out, weak labels: at the rule's precision the model finds **88 % of matches vs 58 %** for a name + distance rule (Bangkok 91 % vs 27 %); 61 % recall at 99 % precision; AUC 0.994 |
+| A. Pair model on Foursquare LM | `kaggle/fsq_pair_model/train.py` (private Kaggle CPU kernel `canon-fsq-pair-model`, 22 min) | done → `reports/models/fsq_pair_model.md` | Unseen places: cluster IoU **0.878** vs 0.74-0.78 for rule baselines. Blocking caps the score at 0.959 (20% world; at competition density this recipe scores 0.842) |
+| A2. Foursquare v2 (20 Nov) | `kaggle/fsq_v2/stage1.py` + `kaggle/fsq_v2_xenc/stage2.py` (Kaggle T4) | done → `reports/models/fsq_v2.md` | 570k-record held-out half: **IoU 0.9165** (GBDT stages 0.897); published 1st place 0.9166 (their CV) |
+| B. Cross-source city matcher | `scripts/train/city_matcher.py` (local, ~8 min); stage 2 `city_matcher_stage2.py`; stage 3 `kaggle/city_xenc` | done → `reports/models/city_matcher*.md` (stage 2/3: AP 0.976 -> 0.982 -> 0.983) | Leave-one-city-out, weak labels: at the rule's precision the model finds **88 % of matches vs 58 %** for a name + distance rule (Bangkok 91 % vs 27 %); 61 % recall at 99 % precision; AUC 0.994 |
 | B2. Transfer to two real OTA feeds | `scripts/train/ota_matcher.py` | done → `reports/models/ota_matcher.md` | No retraining: 546 accepted pairs, 484 Goibibo hotels with a MakeMyTrip twin. No labels yet |
 | C. Room / rate parser | `canon/rooms.py`, `scripts/train/rooms_benchmark.py` | done → `reports/models/rooms.md` | Simulated second supplier on 1,484 real hotels: **96 % of renamed rooms mapped** vs 60 % for the best fuzzy matcher |
 | D. Sightseeing typed relations | `canon/activities.py`, `scripts/train/activities_benchmark.py` | done, first pass → `reports/models/activities.md` | Simulated second supplier, in-sample: 96 % accuracy over four relations; a deduplicator merges 95 % of variants and 100 % of combos |
-| E. Offer arbitration (RAEP) | demo panel only (`demo/index.html`, tab 5) | simulation, not a result | — |
+| E. Offer arbitration (RAEP) | demo panel only (`submission/round1/demo/index.html`, tab 5) | simulation, not a result | — |
 | F. Ranking | — | **blocked** on Expedia rules | — |
 
 Things to know:
@@ -107,16 +109,130 @@ Things to know:
 ### Phase 4 — Round 1 package: BUILT
 
 `submission/round1/`: `Canon_Round1.pptx` (cover, two content slides, thank-you, speaker notes), `VIDEO_SCRIPT.md`, `figures/`, `screens/`,
-`numbers.json`, `README.md`. Validation demo to screen-record: `demo/index.html` (six tabs; simulated parts are tagged on screen).
+`numbers.json`, `README.md`. Validation demo to screen-record: `submission/round1/demo/index.html` (six tabs; simulated parts are tagged on screen).
 The demo uses no map tile server: tile.openstreetmap.org blocks pages opened as local files and CARTO needs an API key, so the map is drawn
-from OSM data bundled in `demo/basemap.js` and Leaflet is vendored in `demo/vendor/`. Do not add a tile layer back.
+from OSM data bundled in `submission/round1/demo/basemap.js` and Leaflet is vendored in `submission/round1/demo/vendor/`. Do not add a tile layer back.
 Every number in the deck is read from `numbers.json`; rebuild steps are in the package README.
+
+**Deck v3 (20 Nov, morning): `submission/round1/Canon_Round1_v3.pptx`** (+ `.pdf`, renders in `qa_v3/`), from `scripts/deck/build_round1_deck_v3.js`.
+Same content discipline, new look matching the website: paper-white, near-black ink, one signal orange; Franklin Gothic + Consolas (ship with
+Office on Windows and Mac). Slide 2 "It is not deduplication. It is a product graph.": the graph drawn with the three real examples (Atlantis in
+four sources and two scripts, `TWN PARTIAL SV HB NRF` split into room and rate, the Universal Studios family), the 9-stage pipeline as a spine
+with the cascade to scale, and "What is new" as four numbered mechanisms. Slide 3 "It already runs on real data. TBO can start it in shadow
+mode.": dumbbell of the 12 held-out cities, a table of everything else with its truth, then impact / feasibility / adoption. Status by form
+(solid / hatched / outline), one legend. It shows the 20 Nov results (Foursquare 0.917 level with 1st place; tours 74% -> 87% on new phrasings
+beside the in-sample 96%). Example details come from `submission/round1/demo/data.js`; the generator asserts they still match what is drawn and that no block runs
+off a slide. `render.ps1` now takes `-Deck`, `-Out`, `-Pdf` (run it with `-ExecutionPolicy Bypass`; the machine's policy blocks scripts).
+Speaker notes follow `VIDEO_SCRIPT.md`'s time codes; the script now points at slide 3 for its numbers. `Canon_Round1.pptx` is untouched.
+
+Deck v3 overlap pass (20 Nov, 10:45; the user saw text overlapping). Cause: a viewer without Franklin Gothic and Consolas substitutes wider
+fonts, and text sized for the Office fonts wrapped into its neighbours (confirmed by rendering a copy with Arial and Courier New swapped in:
+about a dozen collisions). Fix: the generator now measures text with Arial's advance widths (+5%) and monospace at 0.6 em, so every box
+holds the widest likely substitute; one-line labels are set not to wrap; it stops if any text block needs more lines than its box holds.
+Texts were trimmed to fit, the tour rows got more room, the three relation lines now meet node A at three heights (the arrowhead used to sit
+on the other two), and slide 2's legend is split: relations under the graph, status stacked under the pipeline. Checked by rendering both
+the real deck and the font-swapped copy (Arial / Courier New) through PowerPoint: no collisions on any slide in either.
+To repeat the check: swap the font names in a copy of the pptx (any zip tool), render it with `render.ps1`, and look.
+
+### Phase 5 — public website: BUILT (19 Nov 2026)
+
+One command, offline, binds 127.0.0.1 only: `.venv\Scripts\python.exe -X utf8 web\serve.py` → http://127.0.0.1:8765/
+(`--port` to change it). Rebuild the story data after any model re-run: `.venv\Scripts\python.exe -I -X utf8 web\build_site_data.py`.
+
+- `web/static/`: no build step. Vanilla ES modules, hand-written WebGL2 map (`js/gl.js`), fonts self-hosted (Archivo variable for display,
+  IBM Plex Mono + Plex Sans Arabic / Thai / Devanagari for raw supplier strings). Sections: landing collapse (5,187 → 4,074 from real
+  clusters), the Marina problem, the method story (8 beats), the workbench (ink-dark), evidence, adoption.
+- Every quoted figure is a `data-n` binding into `/numbers.json` (served live from `submission/round1/numbers.json`); an in-browser audit
+  found 24 bindings, 0 mismatches. Simulated parts are hatched and tagged; truth tags on every evidence number.
+- `web/serve.py` + `web/api/`: the API in `web/API.md` around `canon/` (details and checks in `web/api/README.md`).
+  New library pieces: `canon/cascade.py` (key rules, routing, constrained union-find, mirroring city_matcher.py), `canon/_trace.py` and an
+  optional `trace=` on `parse_room` / `parse_activity` (old vs new outputs identical on all real strings and benchmark rewrites).
+- `scripts/train/loco_models.py` rebuilds the 12 leave-one-city-out boosters (into `data/processed/city_matcher/loco/`, ~30 s); they
+  reproduce the stored out-of-city scores exactly, so preset runs score labelled pairs out of city, as the evaluation did.
+- Parity: a live Dubai run reproduces pairs.parquet (42,605 candidates, features and p identical) and 5,187 → 4,074; London reproduces
+  10,169 lodging entities; the OTA preset reproduces ota_matcher.py's bands. The browser worker's union-find matches the server's entity
+  count on Dubai, London and an upload. London end to end takes ~150 s (blocking ~95 s); Dubai ~15 s.
+- Review answers from the workbench go to `data/processed/web_review/answers.csv` (created on first answer); label sheets are never touched.
+- Known limits: one run computes at a time; upload sources outside the four training sources reach the model as an unknown `src_pair`;
+  only Dubai has a bundled basemap (other cities draw on a plain ground).
+
+## Overnight ML upgrade (20 Nov)
+
+User's request (night of 19-20 Nov): audit the models behind the website for placeholders, benchmark them against the state of the art,
+implement stronger models (Kaggle GPU on the user's own account, `nishkarshsinghal`, token in `C:\Users\nishk\.kaggle\kaggle API.txt`),
+keep this file current, commit and **push** to `origin round1-spike` without asking. Commits: user's name only, no trailers.
+A one-shot scheduled task (`voyage-overnight-ml-resume`, 06:15 IST) resumes this list if the session stopped at the usage limit;
+it does nothing if `data/interim/overnight_heartbeat.txt` was touched in the last 40 minutes.
+
+Audit findings (01:30): **no placeholder models.** The website's API loads the real LightGBM pair model (`model.lgb`) and the 12
+leave-one-city-out boosters; simulated parts (offer prices / reliability, the second supplier for rooms and tours) are tagged on the page.
+The weak spots are evidence, not code: city-matcher truth is weak labels, rooms / tours use a simulated second supplier, the tours score is
+in-sample, there is no transformer stage, ranking is blocked (Expedia still returns the rules 403 on the user's account, re-checked 01:50).
+
+State of the art used as the reference: Foursquare Location Matching (Kaggle 2022, 1,079 teams). The 1st-place write-up reports CV IoU
+**0.875** for its LightGBM stage, **0.911** with xlm-roberta-large + mdeberta-v3 + CatBoost, **0.9166** with post-processing; its candidate
+generation (100 geo + 100 multilingual-BERT name neighbours, cut to ~40) has a max IoU of 0.979. Leaderboard scores are inflated by a
+train/test leak, so CV is the comparable figure. (Source: 1st-place write-up, via a repost; the 7th-place write-up reports a 0.9778 retrieval ceiling.)
+
+- [x] `kaggle/fsq_v2/stage1.py`: v2 pipeline. 50/50 place split (each world ~570k records, competition density), cross-fitted A<->B,
+      thresholds picked on A and reported on B. Retrieval: geo pool 100 -> 10 nearest + 10 most name-similar by a multilingual-e5-small
+      encoder fine-tuned (InfoNCE, idea from the Amazon BER v7 pipeline) on the *other* world + country-wide encoder search (top 6 within
+      100 km) + exact name. ~60 pair features, stage-2 XGBoost on collective features (competing candidates, ranks, two-hop support),
+      per-record match lists with two-hop completion. Also re-runs the **v1 recipe at the same density** as the before/after baseline.
+      Smoke test passed locally (30k places). Kaggle kernel `nishkarshsinghal/canon-fsq-v2-stage1` (T4) pushed ~01:25.
+      **Result (77 min on one T4, world B = 570,024 records): v1 recipe 0.842 -> v2 stage 1 0.887 -> v2 stage 2 0.897 IoU**
+      (best rule 0.760; pair AUC 0.992; swap check 0.898). Retrieval ceiling 0.983 direct / 0.994 with closure (v1 retrieval: 0.941).
+      Published 1st place CV: 0.875 GBDT stage, 0.911 with transformers, 0.9166 with post-processing. Note: v1's 0.878 on the deck
+      was measured on a 20% world (sparser, easier); the same recipe scores 0.842 at competition density.
+- [x] `kaggle/fsq_v2_xenc/stage2.py`: cross-encoder (xlm-roberta-base) re-ranks the uncertain band (0.01 <= p <= 0.99, ~8% of
+      candidates), one direction per T4, then blend / stacker chosen on A. Kernel `canon-fsq-v2-xenc` pushed 02:47 (~2 h expected).
+- [x] `reports/models/fsq_v2.md` from `scripts/train/report_fsq_v2.py` (stage 1 results in; re-run it after the cross-encoder lands).
+- [x] `canon-fsq-v2-xenc` finished (125 min on two T4s; band = 10.5% of candidates, ~0.9M pairs per half). **IoU 0.8970 -> 0.9165 on
+      world B** (stack chosen on A; swap check 0.9183 on A). Cross-encoder AUC inside the band 0.948 vs 0.931 for the GBDT. Published 1st
+      place: 0.9166 with post-processing (their CV, different folds: "level with", not "beat"). Report, numbers.json and the v2 deck updated.
+      Only `metrics_stage2.json` was pulled (the full output is ~1.5 GB of pair files; pull with `--file-pattern` if needed).
+- [x] `scripts/train/city_matcher_stage2.py`: collective second stage for the 12-city matcher, strict nested leave-one-city-out
+      (132 nested boosters, ~5 min locally). **Pooled AP 0.976 -> 0.982, recall at 99% precision 61.4% -> 69.8%, precision at 95%
+      recall 88.8% -> 92.7%; AP up in 11 of 12 cities.** Dubai's recall at 99% precision drops (50% -> 3%): its top-scored "non-matches"
+      are duplicate Wikidata items of one place (Latin vs Arabic names), i.e. label noise; the report lists them. The website still
+      runs stage 1 (wiring stage 2 into the live preset runs would change the landing counts the deck quotes: not done on deadline day).
+- [x] `scripts/train/rooms_semantic_baseline.py` (GPU env): zero-shot multilingual-e5 small/base matchers on the exact 50,310 renamed
+      strings (rooms_benchmark.py now saves them; its own output is byte-identical). Thresholds on 20% of hotels, scores on 80%:
+      parser 95.9% correct at 100% precision; e5-small alone 80.7% at 99.0%; **parser then e5-small 99.8% correct at 99.8% precision**.
+- [x] `scripts/train/activities_heldout.py`: new rewrite templates written after the rules were frozen, run once.
+      **Rules score 74.2% accuracy / macro-F1 0.742 held out vs 96.4% in-sample**; "private tour" and "guided tour" phrasings fail.
+      Rules were not changed after seeing this.
+- [x] `kaggle/activities_llm/relate_llm.py`: Qwen2.5-7B-Instruct (Apache-2.0), 4 in-sample shots, letter log-probs (deterministic),
+      kernel `canon-activities-llm` (10 min on T4 x2; dataset `nishkarshsinghal/canon-activity-pairs`). Report by
+      `scripts/train/activities_llm_report.py` -> `reports/models/activities_llm.md`: **held out, rules 74.2%, LLM 87.4%, cascade 87.2%**
+      (cascade policy cross-fitted on product halves of the held-out set; the kernel's own in-sample-chosen cascade, 75.9%, is not used).
+      LLM wins on private / transfer / fast-track / time phrasings, loses on meals (57% vs 81%).
+- [x] City matcher stage 3 (done 02:35, 34 min on T4 x2): **AP 0.9824 -> 0.9833, precision at 95% recall 92.7% -> 93.5%, band AUC
+      0.969 -> 0.972; cross-encoder alone matches the stage-1 GBDT (AP 0.975); Dubai AP 0.965 -> 0.976.** Report
+      `reports/models/city_matcher_xenc.md`. `scripts/train/city_xenc_data.py` builds dataset `nishkarshsinghal/canon-city-pairs` (labelled pairs,
+      record text without phone / URL / QID); kernel `canon-city-xenc` (`kaggle/city_xenc/city_xenc.py`, pushed 02:00) fine-tunes
+      xlm-roberta-base leave-4-cities-out (3 folds) and stacks it on stage 2; writes `city_matcher_xenc.md` + `metrics_city_xenc.json`.
+      Pull with `kaggle kernels output nishkarshsinghal/canon-city-xenc -p kaggle/city_xenc/output`, copy the md to reports/models.
+- [x] `scripts/figures/v2_numbers.py`: adds `fsq_v2`, `matching_stage2`, `rooms_semantic`, `sightseeing_heldout` to numbers.json
+      (asserts no existing key changes; round1_figures.py calls it too). `scripts/train/report_fsq_v2.py` writes the Foursquare report.
+- [x] Website evidence (`web/static/js/evidence.js`): Foursquare cell switches to v2 vs published 1st place when `fsq_v2` exists;
+      three new cells (stage-2 matcher, tours held out, rooms cascade) appear only when their keys exist; the in-sample caveat now
+      quotes the held-out score.
+- [x] New numbers under new keys in `numbers.json`; website evidence shows them (checked in a local preview on port 8766: 9 cells).
+- [x] `reports/models/README.md`: one-page model index (task, model, truth, result, state-of-the-art comparison).
+- [x] `submission/round1/VIDEO_SCRIPT.md`: optional "New since 20 Nov" lines, with what each may be called.
+- [x] Deck variant: `CANON_DECK_V2=1 node scripts/deck/build_round1_deck.js` -> `submission/round1/Canon_Round1_v2.pptx` (tours card shows
+      held-out 87% vs 74%; "Also measured" line shows Foursquare v2). `Canon_Round1.pptx` is unchanged. **User decides which to submit**
+      (the video should match the deck). Rebuild v2 after the Foursquare cross-encoder lands if its IoU rounds differently.
 
 ## Next steps
 
-- [ ] User: fill the two deck placeholders, record the video from `VIDEO_SCRIPT.md`, check Unstop's upload format, submit by 20 Nov.
+- [ ] User: look at `Canon_Round1_v3.pptx` (renders in `submission/round1/qa_v3/`) and pick v3 or the first deck. Once v3 is chosen,
+      it may replace `Canon_Round1.pptx` (not done: the user asked to see it first).
+- [x] Deck placeholders filled on v3 (team, members, repository link).
+- [ ] User: record the video from `VIDEO_SCRIPT.md`, check Unstop's upload format, submit by 20 Nov 11:59 PM IST.
 - [ ] User: accept the Expedia rules on Kaggle. Then model F: Expedia EDA, LambdaMART vs inverse-propensity-weighted, NDCG@5 on the
-      random-order slice, duplicate injection. If it lands before the 20th, add one number to slide 2 and the script.
+      random-order slice, duplicate injection. If it lands before the 20th, add one number to slide 3 (v3 deck) and the script.
 - [ ] Label the 400-pair sheet, then report model B against human labels and re-pick the accept threshold.
 - [ ] Model A v2 on Kaggle: more blocking generators to lift the 0.959 ceiling; then a cross-encoder for the uncertain band (GPU).
 - [ ] Model D on a second real supplier (Viator Basic Access) and a held-out set.

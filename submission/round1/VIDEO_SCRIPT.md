@@ -1,11 +1,13 @@
 # Round 1 video: script and shot list
 
-About 2 min 50 s, around 400 spoken words. Record the screen while clicking through `demo/index.html`; the narration below is timed to the six tabs.
-Every number spoken here is in `numbers.json` and on slide 2 of the deck.
+About 2 min 50 s, around 400 spoken words. Record the screen while clicking through `submission/round1/demo/index.html`; the narration below is timed to the six tabs.
+Every number spoken here is in `numbers.json` and on slide 3 of the deck (the second content slide; slide 1 is the cover).
+The script matches `Canon_Round1_v3.pptx`: its speaker notes carry the same lines under the same time codes
+(slide 2 covers 0:22 to 2:12, slide 3 covers 2:12 to 2:38, slide 4 closes at 2:38). It also matches the earlier `Canon_Round1.pptx`.
 
 ## Before recording
 
-- Open `demo/index.html` in Chrome or Edge at 1920 × 1080, zoom 100%, bookmarks bar hidden. The page is fully offline: the map is drawn
+- Open `submission/round1/demo/index.html` in Chrome or Edge at 1920 × 1080, zoom 100%, bookmarks bar hidden. The page is fully offline: the map is drawn
   from bundled OpenStreetMap data, so no internet is needed. Use a normal browser window, not an editor's preview pane.
   The stills in `screens/` are the same six tabs, if you would sooner narrate over images.
 - Jump straight to a tab with the address bar: `index.html#mess`, `#match`, `#rooms`, `#acts`, `#offer`, `#proof`.
@@ -22,7 +24,7 @@ Every number spoken here is in `numbers.json` and on slide 2 of the deck.
 | 0:58 – 1:26 | **Tab 3, Hilton Diagonal Mar.** Point at the third row, `TWN PARTIAL SV HB NRF`: the string, then its blue room chips, then its orange rate chips, then the matched room on the right. | "Hotels are only the first level. A supplier's room string mixes the room with the rate plan. Canon splits them: twin bed and partial sea view are the room; half board and non-refundable are the rate. Then it matches on room attributes only. On the real room lists of almost fifteen hundred hotels, with a simulated second supplier, it maps ninety-six percent of renamed rooms. The best fuzzy matcher manages sixty." |
 | 1:26 – 1:54 | **Tab 4, Universal Studios Singapore.** Point at cards A, B, C, D in turn, then rows A → B, A → C and A → D on the right. | "For sightseeing, 'same or different' is the wrong question. These are real listings for Universal Studios Singapore. The express pass is a variant of the ticket: same park, different access. The combo-packages product covers the ticket and more. The VIP tour is a different experience. A plain deduplicator would merge ninety-five percent of variants like these and lose the very difference the customer is paying for." |
 | 1:54 – 2:12 | **Tab 5.** Leave the default hotel (Hilton Dubai Jumeirah). Drag the failure-cost slider to zero, then back to the middle: the highlighted row moves from Supplier A to Supplier B. | "Once listings are merged, offers sit side by side, and reliability gets a price. Ignore risk and the cheapest offer wins. Price in the risk, and it loses to a supplier that fails far less often. These prices are simulated. The mechanism is what we are showing." |
-| 2:12 – 2:38 | **Tab 6.** Point at the first chart, Bangkok bars, then the "Who settles each candidate pair" chart. | "What is measured today: on cities the model never saw, it finds eighty-eight percent of true matches where a name-and-distance rule finds fifty-eight, at the same precision. In Bangkok, where names change script, ninety-one against twenty-seven. And seventy-three percent of candidate pairs never reach an expensive model. Our truth for matching is independent identifiers, not hand labels, and we say so on the slide." |
+| 2:12 – 2:38 | **Tab 6.** Point at the first chart, Bangkok bars, then the "Who settles each candidate pair" chart. (Or show slide 3 of the v3 deck: the Bangkok row of the dumbbell, then the "All 12 cities" row, then the first row of the table.) | "What is measured today: on cities the model never saw, it finds eighty-eight percent of true matches where a name-and-distance rule finds fifty-eight, at the same precision. In Bangkok, where names change script, ninety-one against twenty-seven. And seventy-three percent of candidate pairs never reach an expensive model. Our truth for matching is independent identifiers, not hand labels, and we say so on the slide." |
 | 2:38 – 2:52 | **Deck, thank-you slide** (or stay on tab 6). | "Canon is built to sit beside existing hotel mapping: it takes those IDs as input, keeps thresholds in configuration, and logs every merge so it can be undone. Round two adds ranking on real search logs and a second real supplier for tours. Thank you." |
 
 ## What you can and cannot say
@@ -33,13 +35,25 @@ Say freely, these are measured:
 - 88% against 58% of true matches at equal precision on unseen cities; Bangkok 91% against 27%. Always add "at the same precision" and that the truth is independent identifiers.
 - Dubai: 5,187 lodging listings become 4,074 hotels.
 - 73% of 1.23 million candidate pairs settled by rules and a small model.
-- 1.14 million labelled places: cluster score 0.88 against 0.78 for the best rule.
+- 1.14 million labelled places: cluster score 0.88 against 0.78 for the best rule. This is on `Canon_Round1.pptx` only; the v3 deck shows the
+  570k-record result listed under "New since 20 Nov" instead.
 
 Say only with the qualifier:
 
 - Rooms, 96% against 60%: "real hotel room lists, simulated second supplier".
 - Sightseeing, 95% of variants merged by a deduplicator, 96% accuracy for typed relations: "real Klook products, simulated second supplier". The 96% was tuned on the same pairs, so do not call it a benchmark result.
 - Two Indian OTA feeds: 484 hotels matched with no retraining. There are no labels for these yet, so do not quote a precision.
+
+New since 20 Nov. `Canon_Round1_v3.pptx` shows the place-matching benchmark (0.917) and the tours figures on new phrasings (74%, 87%), so with
+that deck they may be said, with their qualifiers. `Canon_Round1.pptx` still shows the earlier figures; with it, leave these out:
+
+- Public place-matching benchmark at competition density, 570k records the model never trained on: IoU 0.92, against 0.84 for our first recipe
+  and 0.76 for the best rule. That is level with the 1st place of 1,079 teams, who reported 0.917 on their own cross-validation; say "level with",
+  never "beat", because the splits differ. Say "public competition data, research use".
+- The 0.88 on `Canon_Round1.pptx` was measured on a sparser 20% slice. If it stays on the slide, say "on a held-out slice of unseen places".
+- Hotel matching, second stage: average precision 0.976 -> 0.982 on unseen cities, same weak labels; a transformer cross-encoder on top: 0.983.
+- Rooms: parser first, sentence embedding for the rest maps 99.8% of renamed rooms at 99.8% precision (simulated second supplier).
+- Tours on phrasings the rules never saw: rules 74%, an open 7B LLM 87% (simulated second supplier). This replaces the in-sample 96% as the honest figure.
 
 Do not say:
 
